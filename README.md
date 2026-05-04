@@ -51,20 +51,6 @@ Every step is on-chain and publicly verifiable. No off-chain randomness, no cust
 
 `spec.md` and `plan.md` are local-only working documents and are gitignored.
 
-## Status
-
-Building for the [Colosseum](https://www.colosseum.com) hackathon, submission deadline 2026-05-11.
-
-| Phase | Scope | Status |
-|---|---|---|
-| Day 1 | Anchor scaffold, account structs, `initialize_platform`, LiteSVM tests, web scaffold (bonus) | Done |
-| Day 2 | `create_raffle`, `buy_ticket` | In progress |
-| Day 3 | Switchboard VRF, `request_draw` | Planned |
-| Day 4 | `settle_raffle`, `claim_prize`, devnet deploy | Planned |
-| Day 5-6 | Frontend wiring (Privy, raffle pages, create + buy + claim flows) | Planned |
-| Day 7 | Polish, demo video, submission | Planned |
-
-Cut for v0.1 (post-hackathon): token / NFT prizes, USDC ticket payments, mainnet deploy with audit, creator dashboard, refund flow, indexer, referrals, featured listings.
 
 ## Local development
 
@@ -88,11 +74,6 @@ pnpm dev
 
 App runs at http://localhost:3000.
 
-## Security posture
-
-The program is rated 🔴 critical risk. PDA-controlled vaults hold prize SOL and pooled ticket revenue, the protocol fee treasury is a single key in v0.1, raffle creation is permissionless, and a multi-CPI chain to Switchboard VRF lands on Day 3.
-
-Every instruction is reviewed against an internal audit-derived checklist before merge: PDA validation, CPI trust boundaries, arithmetic safety, lifecycle integrity, slippage and fee ordering, and admin key handling. Mainnet deploy will require a full third-party audit and admin authority rotation to a multisig.
 
 ## License
 
