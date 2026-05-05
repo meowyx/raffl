@@ -20,12 +20,16 @@ pub struct Raffle {
     pub prize_type: PrizeType,
     pub ticket_price: u64,
     pub max_tickets: u32,
+    pub min_tickets: u32,
     pub tickets_sold: u32,
+    pub prize_amount: u64,
     pub end_time: i64,
+    pub created_at: i64,
     pub state: RaffleState,
     pub winning_ticket: Option<u32>,
     pub winner: Option<Pubkey>,
     pub vrf_account: Pubkey,
+    pub commit_slot: u64,
     pub vault_bump: u8,
     pub bump: u8,
 }
@@ -53,5 +57,6 @@ pub enum RaffleState {
     Active,
     Drawing,
     Settled,
+    Claimed,
     Cancelled,
 }

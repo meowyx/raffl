@@ -29,6 +29,11 @@ out/
 .env.local
 .env.*.local
 
+# Wallet keypairs (NEVER commit)
+keypair.json
+*-keypair.json
+*.key
+
 # Editor
 .vscode/
 .idea/

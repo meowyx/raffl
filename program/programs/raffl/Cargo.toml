@@ -22,9 +22,18 @@ custom-panic = []
 
 [dependencies]
 anchor-lang = "1.0.1"
+switchboard-on-demand = { version = "0.12", default-features = false, features = ["solana-v3"] }
+# `custom` feature lets `getrandom 0.2` compile on the SBF target. We register
+# a no-op backend below; on-chain randomness comes from Switchboard, never
+# from getrandom, so no real RNG is needed.
+getrandom = { version = "0.2", features = ["custom"] }
 
 [dev-dependencies]
 litesvm = "0.10.0"
+# Pinned to ^3 to match litesvm 0.10's transitive solana-account version.
+# Bumping to 4.x triggers a "two versions of the same crate" type mismatch
+# at `svm.set_account()`. When litesvm itself bumps, we move with it.
+solana-account = "3"
 solana-message = "3.0.1"
 solana-transaction = "3.0.2"
 solana-signer = "3.0.0"

@@ -8,9 +8,14 @@ skip-lint = false
 [programs.localnet]
 raffl = "Finb5eCnqTNm33ssqS2ofEnuoHzCmXaWfuXEn4HcaGRA"
 
+[programs.devnet]
+raffl = "Finb5eCnqTNm33ssqS2ofEnuoHzCmXaWfuXEn4HcaGRA"
+
 [provider]
-cluster = "localnet"
-wallet = "~/.config/solana/id.json"
+cluster = "devnet"
+# Maintainer uses a dedicated deploy wallet. If you forked this repo, change
+# this to "~/.config/solana/id.json" (Solana CLI default) or your own path.
+wallet = "~/.config/solana/deployer.json"
 
 [scripts]
 test = "cargo test"
