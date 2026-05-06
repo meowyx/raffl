@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Geist, JetBrains_Mono, Instrument_Serif } from "next/font/google";
+import { RafflPrivyProvider } from "@/components/privy-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -7,15 +8,27 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
 });
 
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+});
+
 export const metadata: Metadata = {
-  title: "raffl - on-chain raffles on Solana",
+  title: "raffl: on-chain raffles on Solana",
   description:
-    "Create a raffle. Anyone can enter. Chain picks the winner. Permissionless on-chain raffles with provably fair settlement.",
+    "Permissionless on-chain raffles. Deposit a prize, set a ticket price, let buyers enter from any wallet. Switchboard VRF picks the winner.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -26,9 +39,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      data-theme="dark"
+      className={`${geistSans.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body>
+        <RafflPrivyProvider>{children}</RafflPrivyProvider>
+      </body>
     </html>
   );
 }
