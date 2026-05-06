@@ -32,7 +32,7 @@ export function RafflPrivyProvider({ children }: { children: React.ReactNode }) 
           solana: { connectors: solanaConnectors },
         },
         embeddedWallets: {
-          createOnLogin: "users-without-wallets",
+          solana: { createOnLogin: "users-without-wallets" },
         },
         solana: {
           rpcs: {
