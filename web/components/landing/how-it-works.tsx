@@ -75,7 +75,7 @@ export function HowItWorks() {
                 <span style={{ color: "var(--accent)" }}>›</span>
                 <code>request_draw</code>
                 <span style={{ marginLeft: "auto", color: "var(--muted-2)" }}>
-                  vrf:7c3d…
+                  vrf:Aio4…
                 </span>
               </div>
               <div className="demo-row">

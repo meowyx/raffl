@@ -59,7 +59,7 @@ export function Hero() {
         <div className="wheel-stage">
           <div className="wheel-tag tl">
             <span className="dot" />
-            VRF · 0x7c3d…a91f
+            VRF · Aio4…4ji2
           </div>
 
           <BigWheel segments={12} winnerIndex={2} />

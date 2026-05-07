@@ -44,7 +44,7 @@ export function TrustStrip() {
             Helius
           </span>
         </div>
-        <span className="trust-label">Audit pending · v0.1</span>
+        <span className="trust-label">Devnet · v0.1</span>
       </div>
     </section>
   );

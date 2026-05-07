@@ -32,7 +32,7 @@ export function WhyRaffl() {
               </div>
               <div className="why-receipt-row">
                 <span className="k">vrf_result</span>
-                <span className="v">0x7c3d…a91f</span>
+                <span className="v">Aio4…4ji2</span>
               </div>
               <div className="why-receipt-row">
                 <span className="k">winning_ticket</span>
