@@ -14,10 +14,10 @@
   --ink-3: #2b2e34;
   --line: rgba(12, 13, 16, 0.10);
   --line-strong: rgba(12, 13, 16, 0.18);
-  --muted: oklch(0.97 0 0);
+  --muted: rgba(12, 13, 16, 0.55);
   --muted-2: rgba(12, 13, 16, 0.35);
 
-  --accent: oklch(0.97 0 0);
+  --accent: #4a9be4;
   --accent-strong: #2d7fc9;
   --accent-soft: #e6f0fa;
   --accent-ink: #0c0d10;
@@ -790,8 +790,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .dash-tab[data-state="active"] .count { background: var(--accent); color: var(--ink); }
 
-/* Explore tab is a navigation link, not a state-toggle tab. Style as a tab but
-   without the active-state underline — it always looks like a "go there" link. */
+/* Explore tab is a navigation link, not a state-toggle tab. */
 .dash-tab-link {
   margin-left: auto;
   text-decoration: none;
@@ -1211,7 +1210,7 @@ button { font-family: inherit; cursor: pointer; }
   .dash-tabs { gap: 18px; }
   .dash-tab-link { margin-left: 0; }
 
-  /* PayoutsCard 3-col breakdown crams below 720px — stack to 2 cols (Accruing on its own row) */
+  /* PayoutsCard 3-col breakdown crams below 720px; stack to 2 cols. */
   .payouts-card .breakdown.breakdown-3 {
     grid-template-columns: 1fr 1fr;
   }

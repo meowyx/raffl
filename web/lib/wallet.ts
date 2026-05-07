@@ -3,11 +3,9 @@
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth/solana";
 
-// Returns the wallet the user actually authenticated with, not just `wallets[0]`.
-// When a user has multiple Solana wallet extensions installed (e.g. Phantom +
-// Solflare), `useWallets()` returns all connected ones in undefined order. The
-// authenticated identity lives in `usePrivy().user.wallet.address` — match it
-// against the wallets array to find the right signer for transactions.
+// Picks the wallet matching the authenticated identity. With multiple Solana
+// extensions installed, useWallets() returns them in undefined order, so
+// always match against usePrivy().user.wallet.address.
 export function useActiveWallet() {
   const { user, ready: privyReady } = usePrivy();
   const { wallets, ready: walletsReady } = useWallets();

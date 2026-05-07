@@ -1,16 +1,5 @@
 "use client";
 
-// Real on-chain reads for the raffl program.
-// Returns view-model objects shaped per `lib/types.ts` so dashboard components
-// stay agnostic to the data source.
-//
-// Architecture:
-//   1. rpc.ts          → kit RPC against /api/rpc (Helius proxied) + WS to devnet
-//   2. program-client/ → Codama-generated decoders + instruction builders
-//   3. program.ts (this file) → discriminator-filtered fetches + chain→view-model adapters
-//
-// Components consume `Raffle` / `Ticket` view models from `lib/types.ts`.
-
 import {
   isSome,
   type Address,
@@ -38,8 +27,6 @@ export type Platform = {
   treasury: string;
   feeBps: number;
 };
-
-// ---- Adapters: chain shape → view-model ----
 
 const PRIZE_TYPE_NAME: Record<ChainPrizeType, PrizeType> = {
   [ChainPrizeType.Sol]: "sol",
@@ -99,8 +86,6 @@ function adaptTicket(pubkey: Address, data: ChainTicketData): Ticket {
   };
 }
 
-// ---- Helpers ----
-
 function base64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
   const bytes = new Uint8Array(bin.length);
@@ -108,19 +93,12 @@ function base64ToBytes(b64: string): Uint8Array {
   return bytes;
 }
 
-// Encodes a small byte array (the 8-byte account discriminator) as a base58
-// string for use in `memcmp.bytes`. We hand-roll this to avoid pulling in
-// `bs58` as a dep — kit ships its codecs but doesn't expose a one-shot
-// "bytes → base58 string" the way old web3.js v1 did. Eight bytes is tiny;
-// this runs once per fetch.
 function bytesToBase58(bytes: Uint8Array): string {
   const ALPHABET =
     "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
   let zeros = 0;
   while (zeros < bytes.length && bytes[zeros] === 0) zeros++;
-  // Math.ceil keeps `size` an integer — using a float here breaks
-  // Uint8Array indexing in the result-collection loop and yields garbage
-  // strings (e.g. "11" instead of the real 32-byte pubkey).
+  // Math.ceil keeps size an integer; a float breaks the result-collection loop.
   const size = Math.ceil(((bytes.length - zeros) * 138) / 100) + 1;
   const buf = new Uint8Array(size);
   let length = 0;
@@ -141,12 +119,9 @@ function bytesToBase58(bytes: Uint8Array): string {
   return str;
 }
 
-// ---- Fetchers ----
-
 export async function fetchAllRaffles(): Promise<Raffle[]> {
-  // Fetch all program accounts and filter by discriminator client-side.
-  // The kit memcmp filter with `offset: 0n` was returning empty results — the
-  // BigInt apparently doesn't round-trip through the JSON-RPC layer cleanly.
+  // Fetch all program accounts and filter discriminator client-side; the kit
+  // memcmp filter with offset: 0n returns empty due to a BigInt round-trip bug.
   const response = await rpc
     .getProgramAccounts(RAFFL_PROGRAM_ADDRESS, { encoding: "base64" })
     .send();
@@ -232,8 +207,6 @@ function decodeTicketSafe(item: RawProgramAccount): { bytes: Uint8Array; ticket:
 }
 
 function readPubkeyAt(bytes: Uint8Array, offset: number): string {
-  // Base58-encode 32 bytes starting at `offset`. We already have a bytes→base58
-  // helper above; reuse it.
   return bytesToBase58(bytes.slice(offset, offset + 32));
 }
 
@@ -261,9 +234,7 @@ export async function fetchTicketsForBuyer(buyerPubkey: string): Promise<Ticket[
   return tickets;
 }
 
-// All tickets across the program, ordered newest-first by purchasedAt.
-// v0.1: full scan is fine on devnet. Replace with an indexer (Helius webhooks
-// → Supabase) once the active-raffle count grows past a few dozen.
+// Full-scan; replace with an indexer once raffle count outgrows devnet.
 export async function fetchAllTickets(): Promise<Ticket[]> {
   const response = await fetchAllRawProgramAccounts();
   const tickets: Ticket[] = [];

@@ -1,10 +1,5 @@
 "use client";
 
-// SWR-backed read hooks for the raffl program. Initial fetch + caching +
-// dedupe + manual revalidation come from SWR. Real-time invalidation is
-// pushed by the RealtimeProvider, which subscribes to programNotifications
-// over WS and calls `mutate(...)` when on-chain accounts change.
-
 import useSWR, { type SWRConfiguration } from "swr";
 import {
   fetchAllRaffles,
@@ -17,7 +12,7 @@ import {
 } from "./program";
 import type { Raffle, Ticket } from "./types";
 
-// Stable key prefixes — also matched by the realtime invalidation logic.
+// Key prefixes also matched by the realtime invalidation logic.
 export const KEY_RAFFLES = "raffles";
 export const KEY_TICKETS = "tickets";
 export const KEY_RAFFLE = "raffle";
@@ -25,8 +20,6 @@ export const KEY_TICKETS_FOR_BUYER = "tickets-for-buyer";
 export const KEY_TICKETS_FOR_RAFFLE = "tickets-for-raffle";
 export const KEY_PLATFORM = "platform";
 
-// Tightened defaults — Solana state moves slowly, no need for the standard
-// SWR aggressive revalidation.
 const config: SWRConfiguration = {
   revalidateOnFocus: false,
   revalidateIfStale: true,

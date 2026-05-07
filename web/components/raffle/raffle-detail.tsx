@@ -42,6 +42,7 @@ import {
   type Ticket,
 } from "@/lib/types";
 import { useSendTransaction } from "@/lib/tx";
+import { useSettleRaffle } from "@/lib/switchboard";
 import { useActiveWallet } from "@/lib/wallet";
 
 const TICKET_SEED = new Uint8Array([116, 105, 99, 107, 101, 116]); // "ticket"
@@ -63,6 +64,7 @@ export function RaffleDetail({ rafflePubkey }: { rafflePubkey: string }) {
   const { ready, authenticated, login } = usePrivy();
   const { wallet } = useActiveWallet();
   const send = useSendTransaction();
+  const settle = useSettleRaffle();
 
   const { data: raffle, loading, error } = useRaffle(rafflePubkey);
   const { data: tickets } = useTicketsForRaffle(rafflePubkey);
@@ -152,8 +154,6 @@ export function RaffleDetail({ rafflePubkey }: { rafflePubkey: string }) {
     setSubmitting(true);
     try {
       const buyer = createNoopSigner(wallet.address as Address);
-      // Send one tx per ticket. Sequential to avoid blockhash collisions and so
-      // a partial failure surfaces clearly.
       for (const t of myTickets) {
         const ticketPda = await deriveTicketPda(rafflePubkey as Address, t.ticketNumber);
         const ix = await getRefundTicketInstructionAsync({
@@ -163,6 +163,19 @@ export function RaffleDetail({ rafflePubkey }: { rafflePubkey: string }) {
         });
         await send(ix, { label: `Refunding ticket #${t.ticketNumber}` });
       }
+      await invalidate();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onSettle = async () => {
+    if (!raffle || !wallet) return;
+    setSubmitting(true);
+    try {
+      await settle(rafflePubkey, raffle);
       await invalidate();
     } catch (err) {
       console.error(err);
@@ -230,9 +243,6 @@ export function RaffleDetail({ rafflePubkey }: { rafflePubkey: string }) {
   const isWinner = wallet?.address === raffle.winner;
   const ended = now >= raffle.endTime;
 
-  // Cancel conditions per program audit:
-  //   (Active && now > end_time && tickets_sold < min_tickets)
-  //   OR (Drawing && now > end_time + 1h)
   const canCancel =
     (isActive && ended && raffle.ticketsSold < raffle.minTickets) ||
     (isDrawing && now > raffle.endTime + ONE_HOUR);
@@ -333,6 +343,7 @@ export function RaffleDetail({ rafflePubkey }: { rafflePubkey: string }) {
             onClaim={onClaim}
             onRefund={onRefund}
             onReclaim={onReclaim}
+            onSettle={onSettle}
           />
         </section>
 
@@ -398,6 +409,7 @@ type ActionsProps = {
   onClaim: () => void;
   onRefund: () => void;
   onReclaim: () => void;
+  onSettle: () => void;
 };
 
 function RaffleActions(p: ActionsProps) {
@@ -409,7 +421,6 @@ function RaffleActions(p: ActionsProps) {
     );
   }
 
-  // Stack of state-conditional buttons. Most relevant action first.
   const buttons: React.ReactNode[] = [];
 
   if (p.isActive) {
@@ -440,10 +451,11 @@ function RaffleActions(p: ActionsProps) {
         key="settle"
         type="button"
         className="btn btn-primary btn-lg"
-        disabled
-        title="Switchboard VRF integration ships in v0.2"
+        onClick={p.onSettle}
+        disabled={p.submitting}
+        title="Runs the 3-tx Switchboard commit/reveal pipeline"
       >
-        Settle (Switchboard)
+        {p.submitting ? "Submitting…" : "Settle (Switchboard)"}
       </button>,
     );
   }
@@ -506,7 +518,6 @@ function RaffleActions(p: ActionsProps) {
     );
   }
 
-  // Fallback informational text when no actions apply.
   if (buttons.length === 0) {
     return (
       <div className="raffle-cta-info">
@@ -514,7 +525,7 @@ function RaffleActions(p: ActionsProps) {
         {p.isSettled &&
           (p.isWinner
             ? "You won! Click Claim above to collect."
-            : `Winner: ${p.winner ? shortAddress(p.winner) : "—"}`)}
+            : `Winner: ${p.winner ? shortAddress(p.winner) : "-"}`)}
         {!p.isDrawing && !p.isSettled && !p.isCancelled && !p.isActive && "No actions available."}
         {p.isCancelled && p.myTicketCount === 0 && !p.isCreator && "Raffle cancelled."}
       </div>

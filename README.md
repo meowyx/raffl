@@ -67,8 +67,19 @@ Every step is on-chain and publicly verifiable. No off-chain randomness, no cust
 | Bundler | **Turbopack** | Default in Next.js 16; fast dev rebuilds |
 | Package manager | **pnpm** | Workspace-friendly, content-addressed store |
 | Wallet / auth | **Privy** | Embedded wallets via email / Google / Twitter for non-crypto users; external Solana wallets (Phantom, Solflare) via `toSolanaWalletConnectors`; embedded wallet auto-mints for users without one |
-| Solana SDK | `@solana/kit` end-to-end (Privy provider, RPC, instruction building, account decoding) | Typed raffl client generated from the on-chain IDL via Codama, same pattern as `@solana-program/system\|token\|memo` |
+| Solana SDK | `@solana/kit` + Codama-generated typed client for the raffl program (everything except settle) | Anchor + `@solana/web3.js` v1 confined to `lib/switchboard.ts` for the commit-reveal flow, since Switchboard's TS SDK has no kit-native variant yet |
 | Hosting | **Vercel** | Plug-and-play Next.js deploys; preview branches per PR |
+
+## Documentation
+
+Deep-dive docs live under [`docs/`](./docs):
+
+- [Architecture overview](./docs/architecture.md) - components, account topology, money flow, trust boundaries
+- [Lifecycle](./docs/program/lifecycle.md) - state transitions and the happy path
+- [Accounts](./docs/program/accounts.md) - PDA layout and seeds
+- [Randomness](./docs/program/randomness.md) - Switchboard commit-reveal mechanics and the math
+- [Cancel and refund](./docs/program/cancel-and-refund.md) - off-ramp paths
+- [Payouts](./docs/program/payouts.md) - claim arithmetic with the protocol fee
 
 ## Project layout
 
@@ -81,7 +92,10 @@ Every step is on-chain and publicly verifiable. No off-chain randomness, no cust
 │       └── tests/                 LiteSVM integration tests
 ├── web/                           Next.js 16 frontend
 │   ├── app/                       Pages, layout, metadata, favicon
+│   ├── components/                Landing, dashboard, raffle, account, explore
+│   ├── lib/                       Program client, hooks, switchboard wrapper
 │   └── public/                    Static assets (logo)
+├── docs/                          Architecture and program docs
 ├── design/                        Design assets (gitignored)
 ├── logo.png                       Project mark
 └── README.md

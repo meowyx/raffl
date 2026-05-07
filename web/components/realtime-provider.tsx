@@ -1,13 +1,5 @@
 "use client";
 
-// Opens a single WebSocket subscription to programNotifications for the raffl
-// program and triggers SWR cache invalidation whenever an account inside the
-// program changes (raffle created/updated, ticket purchased, settle, claim,
-// cancel, refund, reclaim — they all surface through this single channel).
-//
-// Mount this inside subtrees that consume the SWR hooks (dashboard, account).
-// Mounting it on the landing page would open a WS we don't need.
-
 import { useEffect } from "react";
 import { useSWRConfig } from "swr";
 import { rpcSubscriptions } from "@/lib/rpc";
@@ -37,10 +29,6 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           .subscribe({ abortSignal: controller.signal });
 
         for await (const notification of subscription) {
-          // notification.value.account.data is [base64, "base64"].
-          // Use the discriminator to figure out which keys to invalidate.
-          // If the account is something we don't recognize (program upgrades,
-          // unknown discriminators), fall back to coarse "invalidate all".
           const data = notification.value.account.data;
           const b64 = Array.isArray(data) ? data[0] : data;
           let kind: RafflAccount | null = null;
@@ -56,8 +44,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           } else if (kind === RafflAccount.Ticket) {
             mutate((key) => keyMatchesTicket(key));
           } else {
-            // Unknown / RafflePlatform / future account type — invalidate
-            // everything. Cheap on a low-traffic devnet program.
+            // Unknown discriminator: coarse-invalidate everything.
             mutate(() => true);
           }
         }
@@ -97,8 +84,6 @@ function keyMatchesTicket(key: unknown): boolean {
     Array.isArray(key) &&
     (key[0] === KEY_TICKETS_FOR_BUYER || key[0] === KEY_TICKETS_FOR_RAFFLE)
   ) {
-    // Without decoding, we can't tell which buyer/raffle this ticket touches.
-    // Coarse-invalidate every ticket-related key. SWR dedupes, so it's cheap.
     return true;
   }
   return false;

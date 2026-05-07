@@ -84,7 +84,7 @@ function BuyerStats({
         value={
           groups.length > 0
             ? `${((wonRaffles.length / groups.length) * 100).toFixed(1)}%`
-            : "—"
+            : "-"
         }
         sub={groups.length > 0 ? `${groups.length} raffles entered` : "enter a raffle to start"}
       />
@@ -147,7 +147,7 @@ function MyTicketCard({ group, now }: { group: MyTicketGroup; now: number }) {
         <div className="tc-stat">
           <span className="k">Win odds</span>
           <span className="v" style={{ color: "var(--accent)" }}>
-            {odds > 0 ? `1 in ${odds}` : "—"}
+            {odds > 0 ? `1 in ${odds}` : "-"}
           </span>
         </div>
       </div>

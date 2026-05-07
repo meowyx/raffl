@@ -353,7 +353,7 @@ function SettledHistory({ list }: { list: Raffle[] }) {
                   <td className="mono" style={{ fontWeight: 600 }}>
                     {(revenueSol(r) * 0.95).toFixed(2)} SOL
                   </td>
-                  <td className="mono">{r.winner ? shortAddress(r.winner) : "—"}</td>
+                  <td className="mono">{r.winner ? shortAddress(r.winner) : "-"}</td>
                   <td className="mono" style={{ color: "var(--muted)" }}>
                     {shortAddress(r.vrfAccount)}
                   </td>

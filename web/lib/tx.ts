@@ -20,13 +20,8 @@ import { rpc } from "./rpc";
 import { useActiveWallet } from "./wallet";
 
 type SendOptions = {
-  // SWR keys to revalidate after the tx confirms. The realtime WS layer also
-  // pushes invalidations, but doing it here too closes the gap when the WS is
-  // slower than the user clicking the next thing.
   invalidate?: string[];
-  // Verb shown in toasts. Defaults to "Transaction".
   label?: string;
-  // Override confirmation timeout in ms. Defaults to 30s.
   confirmTimeoutMs?: number;
 };
 
@@ -70,11 +65,8 @@ export function useSendTransaction() {
           id: toastId,
         });
 
-        // Call signAndSendTransaction directly on the wallet object (Solana
-        // Standard Wallet interface) instead of through Privy's hook. The hook
-        // can route to a different wallet when multiple Solana extensions are
-        // injected; the method-on-wallet form is unambiguously bound to this
-        // wallet and prompts that exact extension.
+        // Direct method-on-wallet bypasses Privy's hook, which routes to the
+        // first-injected wallet when multiple Solana extensions are present.
         const { signature: signatureBytes } = await wallet.signAndSendTransaction({
           transaction: wireBytes,
           chain: "solana:devnet",
