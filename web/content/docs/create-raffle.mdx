@@ -1,0 +1,51 @@
+export const toc = [
+  { id: "open-the-form", text: "Open the form", level: 2 },
+  { id: "fields", text: "Fields", level: 2 },
+  { id: "what-happens-on-submit", text: "What happens on submit", level: 2 },
+  { id: "after-create", text: "After create", level: 2 },
+];
+
+# Create a raffle
+
+A walkthrough of the create form, field by field.
+
+## Open the form
+
+Click **+ Create raffle** on the dashboard, or go directly to [/dashboard/create](/dashboard/create). You need a connected wallet with at least the prize amount plus a small buffer for fees.
+
+## Fields
+
+**Prize description** (≤200 characters). Free-text. This is what shows up on the raffle card and detail page. Keep it short and concrete: "0.5 SOL", "1 of 1 NFT (devnet placeholder)", "Discord role", etc.
+
+**Prize amount** (SOL). The lamports that get escrowed into the vault. The winner receives exactly this amount when they claim, before fees. Must be greater than zero.
+
+**Ticket price** (SOL). Per-ticket cost. Must be greater than zero. Common values: 0.01, 0.05, 0.1.
+
+**Max tickets**. Cap on tickets sold. Must be at least the minimum, at most 100,000. The raffle becomes settle-eligible early if this cap is hit before the deadline.
+
+**Min tickets**. Floor for settlement. Must be at least 2. If the deadline passes and tickets sold are below this floor, the raffle moves to a cancellable state (anyone can run `cancel_raffle`, then buyers refund and you reclaim the prize).
+
+**End time**. UTC datetime. Must be between 1 hour and 30 days from now. Once this passes, no more buys; settle becomes possible if min tickets is satisfied.
+
+<Callout variant="info" title="Nonce">
+The form generates a random nonce for you. It is part of the raffle's PDA seed, so different nonces give the same creator different raffle addresses. Useful if you want to run several raffles in parallel.
+</Callout>
+
+## What happens on submit
+
+One transaction. Your wallet prompts you to sign. On confirmation:
+
+1. The Raffle PDA is created (seeds: `["raffle", creator, nonce]`).
+2. The Vault PDA is created (seeds: `["vault", raffle]`).
+3. The prize amount transfers from your wallet to the vault.
+4. State is set to **Active**.
+
+You are redirected to the new raffle's detail page.
+
+## After create
+
+- The raffle is immediately discoverable on [/explore](/explore) and inside dashboards.
+- Buyers can purchase tickets right away.
+- You can cancel only if (a) the deadline has passed and tickets are under the minimum, or (b) the raffle is stuck in Drawing past the timeout. You cannot cancel a raffle that is already meeting the minimum.
+
+To learn what happens at the other end of the lifecycle, read [Manage & cancel](/docs/manage-raffle) and [Payouts](/docs/payouts).

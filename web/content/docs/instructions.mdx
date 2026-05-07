@@ -1,0 +1,59 @@
+export const toc = [
+  { id: "platform", text: "Platform", level: 2 },
+  { id: "create-and-enter", text: "Create and enter", level: 2 },
+  { id: "draw-and-settle", text: "Draw and settle", level: 2 },
+  { id: "claim", text: "Claim", level: 2 },
+  { id: "off-ramps", text: "Off-ramps", level: 2 },
+];
+
+# Instructions
+
+The raffl program exposes nine instructions.
+
+## Platform
+
+**`initialize_platform`**
+
+Creates the singleton `RafflePlatform` PDA. Sets the authority, treasury, and fee bps. Run once at deployment time. Subsequent calls fail because the PDA already exists.
+
+## Create and enter
+
+**`create_raffle`**
+
+Creator-signed. Args: `nonce`, `prize_type`, `prize_amount`, `prize_description`, `ticket_price`, `max_tickets`, `min_tickets`, `end_time`. Validates every field, escrows `prize_amount` into the Vault PDA, sets state to **Active**.
+
+**`buy_ticket`**
+
+Buyer-signed. No args. Derives the next Ticket PDA at index `tickets_sold`, transfers `ticket_price` from buyer to vault, increments `tickets_sold`. Fails if the raffle is not Active, or if the deadline has passed, or if `tickets_sold == max_tickets`.
+
+## Draw and settle
+
+**`request_draw`**
+
+Creator-only. Args: none. Pins a Switchboard randomness account to the raffle. Validates the account is owned by the Switchboard program, deserializes the layout, checks freshness (commit happened in the immediately preceding slot), and confirms the value has not been revealed yet. Stores the randomness pubkey and seed slot on the raffle. State flips to **Drawing**.
+
+**`settle_raffle`**
+
+Permissionless. Args: none. Reads the bound Switchboard randomness, computes `winner_index = entropy % tickets_sold`, derives the matching Ticket PDA seed, compares against the Ticket account the caller passed. On match, writes `winning_ticket` and `winner` to the raffle. State flips to **Settled**.
+
+## Claim
+
+**`claim_prize`**
+
+Winner-only. Args: none. Three transfers from the vault, signed by the vault PDA: prize to winner, fee to treasury, remainder to creator. State flips to **Claimed** before the transfers (defense against any reentry-style anomaly).
+
+## Off-ramps
+
+**`cancel_raffle`**
+
+Permissionless when conditions are met: either (Active && now > end_time && tickets_sold < min_tickets) or (Drawing && now > end_time + 3600). Flips state to **Cancelled**. Moves no funds.
+
+**`refund_ticket`**
+
+Buyer-only, per ticket. Returns `ticket_price` from vault to buyer and closes the Ticket PDA (rent refunded too). Fails if raffle is not Cancelled or if `ticket.buyer != buyer`.
+
+**`reclaim_prize`**
+
+Creator-only. Returns `prize_amount` from vault to creator and zeros `raffle.prize_amount` to defend against accidental double-call. Fails if raffle is not Cancelled.
+
+For the IDL with full account lists and discriminators, see [IDL](/docs/idl). For the math behind `claim_prize`, see [Payouts](/docs/payouts).

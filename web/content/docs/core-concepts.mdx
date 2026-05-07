@@ -1,0 +1,54 @@
+export const toc = [
+  { id: "raffle", text: "Raffle", level: 2 },
+  { id: "ticket", text: "Ticket", level: 2 },
+  { id: "vault", text: "Vault", level: 2 },
+  { id: "platform", text: "Platform", level: 2 },
+  { id: "states", text: "States", level: 2 },
+  { id: "actors", text: "Actors", level: 2 },
+];
+
+# Core concepts
+
+Four account types and five states cover everything raffl does. If you understand these, the rest of the docs is just spelling out the consequences.
+
+## Raffle
+
+The central account. One per raffle. Holds the creator pubkey, prize amount, ticket price, max and min ticket counts, end time, current state, and (after settlement) the winning ticket and winner pubkey.
+
+The seeds are `["raffle", creator, nonce]` where nonce is a u64 the creator picks at create time. This means the same creator can run many raffles in parallel, each addressed by a different nonce.
+
+## Ticket
+
+One PDA per ticket. Seeds are `["ticket", raffle, ticket_number]`. Holds the buyer pubkey, ticket number (a sequential u32 starting at 0), and the unix timestamp it was purchased.
+
+Ticket PDAs make winner lookup trivial: once the program derives the winning index on-chain, it knows exactly which Ticket account holds the winner's pubkey.
+
+## Vault
+
+A SystemAccount PDA scoped to one raffle. Seeds are `["vault", raffle]`. Holds the prize lamports the creator escrowed at create time plus the ticket revenue that accumulates as buyers purchase. The program signs for the vault using its seeds at payout time. No one else can move funds out.
+
+## Platform
+
+A singleton at seed `["platform"]`. Holds the protocol fee (in basis points) and the treasury pubkey. Set once via `initialize_platform` and updated by the authority when needed. Has zero authority over individual raffles.
+
+## States
+
+Every raffle moves through this state machine:
+
+- **Active.** Created but not yet drawn. Buyers can purchase tickets while `now < end_time` and `tickets_sold < max_tickets`.
+- **Drawing.** `request_draw` ran. A Switchboard randomness account is bound. Waiting for `settle_raffle` to reveal and pick the winner.
+- **Settled.** Winner picked and recorded. Funds still in the vault.
+- **Claimed.** Winner ran `claim_prize`. Vault paid winner, treasury, and creator atomically.
+- **Cancelled.** Raffle ended without enough tickets, or got stuck in Drawing past the timeout. Buyers refund and creator reclaims.
+
+Settled and Cancelled are terminal: there is no path back to Active.
+
+## Actors
+
+Three roles, none of which trust each other:
+
+- **Creator.** Whoever signed `create_raffle`. Pays the prize escrow and the rent for the Raffle and Vault accounts. Can run `request_draw`, `cancel_raffle` (when conditions allow), and `reclaim_prize` (after cancellation).
+- **Buyer.** Anyone who signed `buy_ticket`. Pays the ticket price into the vault and gets a Ticket PDA. Can `refund_ticket` after a cancellation. If they win, they can `claim_prize`.
+- **Settler.** Anyone willing to pay the lamports for `settle_raffle`. The math is re-derived on-chain so settlers cannot pick a winner; they just provide the matching Ticket account.
+
+The protocol authority controls only the fee bps and treasury pubkey. It cannot touch raffle vaults or override winners.

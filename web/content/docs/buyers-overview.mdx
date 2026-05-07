@@ -1,0 +1,38 @@
+export const toc = [
+  { id: "the-buyer-flow", text: "The buyer flow", level: 2 },
+  { id: "what-it-costs", text: "What it costs", level: 2 },
+  { id: "what-you-get", text: "What you get", level: 2 },
+  { id: "what-can-go-wrong", text: "What can go wrong", level: 2 },
+];
+
+# For buyers
+
+Buyers are the people who enter raffles to win prizes. You browse, you buy, you wait, you claim if you win.
+
+## The buyer flow
+
+1. **Browse.** Visit [/explore](/explore) (no login required) or your [dashboard](/dashboard) Buyer tab.
+2. **Buy.** Click into a raffle, hit **Buy a ticket**, sign once. You can buy multiple tickets across multiple raffles.
+3. **Wait.** When the raffle ends, the creator settles. Switchboard supplies the random value, the program picks the winner.
+4. **Check.** If you won, the dashboard shows a **Claim prize** prompt. If you did not, you can see who did and verify the draw on-chain.
+
+## What it costs
+
+- **Ticket price.** Whatever the creator set, paid in SOL. Goes into the vault.
+- **Rent.** Each ticket creates a small Ticket PDA (~0.0016 SOL of rent). This is recovered if the raffle gets cancelled (`refund_ticket` closes the account back to you). On a settled raffle the rent stays on the Ticket PDA; closing it is a v0.2 task.
+- **Gas.** Solana network fee on the buy transaction. Typically a few thousand lamports.
+
+## What you get
+
+- **A Ticket PDA** keyed by `["ticket", raffle, ticket_number]` recording your wallet as the buyer. This is your proof of entry.
+- **Win odds** equal to `your_tickets / tickets_sold` once the raffle is sold out (or at deadline).
+- **Refund insurance.** If the raffle does not hit its minimum, anyone can cancel and you can refund every ticket back to your wallet.
+
+## What can go wrong
+
+- **The raffle gets cancelled.** Buyers refund. You get your ticket price plus the Ticket rent back.
+- **The creator never settles.** The raffle ends but stays in **Active** indefinitely. v0.1 has no force-settle path. The creator has soft pressure (no payout, no treasury cut) but no hard deadline.
+- **The creator settles but you did not win.** That is the deal. You can verify the draw was honest: see [Verify a draw](/docs/verify-draw).
+- **You won but never claim.** The funds sit in the vault. Treasury and creator do not get paid until you run `claim_prize`. There is no auto-claim in v0.1. A v0.2 timeout will redistribute stranded prizes.
+
+If you want the field-by-field walkthrough of buying, read [Buying tickets](/docs/buy-tickets).

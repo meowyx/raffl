@@ -1,0 +1,47 @@
+export const toc = [
+  { id: "during-active", text: "During Active", level: 2 },
+  { id: "when-the-deadline-hits", text: "When the deadline hits", level: 2 },
+  { id: "cancellation-paths", text: "Cancellation paths", level: 2 },
+  { id: "refunds-and-reclaim", text: "Refunds and reclaim", level: 2 },
+];
+
+# Manage and cancel
+
+What you can and cannot do once a raffle is live.
+
+## During Active
+
+After `create_raffle` lands, the raffle is **Active**. There is no admin panel. The fields you set at create time (price, max, min, end time) are immutable. The only mutation an Active raffle takes is buyers calling `buy_ticket`, which increments `tickets_sold` and creates Ticket PDAs.
+
+You can watch the raffle from the dashboard or from the raffle's detail page. The "Recent buyers" feed updates in realtime via WebSocket subscription.
+
+## When the deadline hits
+
+Three things can be true at `now >= end_time`:
+
+1. **`tickets_sold >= min_tickets`.** The raffle is settle-eligible. You (the creator) hit **Settle** to run the Switchboard commit-reveal pipeline.
+2. **`tickets_sold < min_tickets`.** Anyone can call `cancel_raffle`. Buyers refund, you reclaim the prize.
+3. **`tickets_sold == max_tickets` before the deadline.** The raffle is settle-eligible immediately, no need to wait for the clock.
+
+## Cancellation paths
+
+`cancel_raffle` is permissionless when:
+
+- **Path 1: under-subscribed.** `state == Active` and `now >= end_time` and `tickets_sold < min_tickets`. The floor was never met. Settlement is impossible because `request_draw` rejects when below the minimum.
+- **Path 2: stale draw.** `state == Drawing` and `now >= end_time + 3600`. The creator pinned a Switchboard randomness account but the reveal never happened. After one hour past the deadline, anyone can cancel.
+
+<Callout variant="warn" title="Sold-out raffles are not cancellable">
+A raffle that sold out but the creator has not drawn yet is **not** cancellable from Active. It is waiting for the creator to settle. There is no way to force-cancel a sold-out raffle. This is a v0.1 limitation; the alternative paths introduced griefing vectors that the audit rejected.
+</Callout>
+
+## Refunds and reclaim
+
+Once `cancel_raffle` flips state to **Cancelled**, two separate instructions release the vault:
+
+**`refund_ticket`** is per-buyer, per-ticket. A buyer with N tickets calls it N times (the UI batches these). Each call transfers the original ticket price back to the buyer and closes the Ticket PDA, returning its rent.
+
+**`reclaim_prize`** is creator-only and runs once. It returns the original prize amount to the creator. After it runs, `raffle.prize_amount` is set to zero, blocking accidental double-calls.
+
+There is no protocol fee on a cancellation. If a raffle does not settle, nobody pays the protocol.
+
+For the math of the happy path (settle + claim) see [Payouts](/docs/payouts).

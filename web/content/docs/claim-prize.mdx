@@ -1,0 +1,54 @@
+export const toc = [
+  { id: "when-you-can-claim", text: "When you can claim", level: 2 },
+  { id: "the-claim-button", text: "The claim button", level: 2 },
+  { id: "what-the-tx-does", text: "What the tx does", level: 2 },
+  { id: "what-if-i-do-not-claim", text: "What if I do not claim", level: 2 },
+];
+
+# Claiming prizes
+
+You won. Here is how to collect.
+
+## When you can claim
+
+After the raffle moves to **Settled**. That happens when the creator runs the Switchboard commit-reveal pipeline and the program writes your pubkey into `raffle.winner`. The raffle detail page shows a **Claim prize** button only to the connected wallet whose address matches `raffle.winner`.
+
+Anyone can read the winner's address; only the winner can claim.
+
+## The claim button
+
+Two places surface the claim:
+
+- **The raffle detail page** at `/raffle/[id]`. The action stack shows **Claim prize** when your wallet is the winner.
+- **The dashboard Buyer tab.** The **Wins** card shows raffles you won that have not been claimed yet, with a button that links to the raffle's detail page.
+
+Click **Claim prize**. Your wallet prompts to sign one transaction.
+
+## What the tx does
+
+`claim_prize` runs three transfers in a single atomic instruction:
+
+1. **Prize to winner.** The full prize amount the creator escrowed.
+2. **Fee to treasury.** `ceil(ticket_revenue * fee_bps / 10_000)`. With the production 5% fee and 100 SOL ticket revenue, that is 5 SOL.
+3. **Remainder to creator.** Ticket revenue minus the treasury fee.
+
+The vault PDA signs all three using stored seeds. State flips to **Claimed** before the transfers, defending against any reentry-style anomaly.
+
+After confirmation:
+
+- Your wallet receives the prize.
+- The creator's wallet receives the ticket-revenue share.
+- The treasury receives the protocol fee.
+- The raffle is permanently in **Claimed** state.
+
+<Callout variant="info" title="One transaction, three transfers">
+The creator does not need a separate "claim my share" step. When you (the winner) run claim, everyone gets paid. This is by design: it puts the gas of paying everyone on the wallet that has the strongest incentive to spend it.
+</Callout>
+
+## What if I do not claim
+
+The funds sit in the vault. Indefinitely, in v0.1. Treasury and creator do not get paid until the winner claims. There is no auto-claim and no timeout-based fallback yet.
+
+This means a winner who never claims effectively burns the creator's ticket-revenue share. v0.2 will add a creator-side fallback that lets the creator (or anyone) claim on the winner's behalf after a long timeout, sending the prize to a fallback address.
+
+Until then: claim. The button is there, the gas is small.

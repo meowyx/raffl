@@ -1,0 +1,89 @@
+export const toc = [
+  { id: "the-four-pdas", text: "The four PDAs", level: 2 },
+  { id: "platform", text: "RafflePlatform", level: 2 },
+  { id: "raffle", text: "Raffle", level: 2 },
+  { id: "vault", text: "Vault", level: 2 },
+  { id: "ticket", text: "Ticket", level: 2 },
+];
+
+# PDAs and accounts
+
+Every persistent piece of state in raffl lives in one of four PDAs.
+
+## The four PDAs
+
+| PDA | Seeds | Owner | Purpose |
+|---|---|---|---|
+| `RafflePlatform` | `["platform"]` | raffl | Singleton. Holds protocol fee bps and treasury pubkey. |
+| `Raffle` | `["raffle", creator, nonce]` | raffl | One per raffle. Holds price, ticket count, state, winner. |
+| `Vault` | `["vault", raffle]` | system | One per raffle. Holds prize lamports + ticket revenue. |
+| `Ticket` | `["ticket", raffle, ticket_number]` | raffl | One per ticket. Holds buyer pubkey + index. |
+
+Vaults are SystemAccount PDAs scoped to a single raffle. A CPI exploit on one raffle's vault cannot drain another, because the seeds are different.
+
+## RafflePlatform
+
+The singleton config account.
+
+```
+authority: Pubkey      // can update fee bps and treasury
+treasury:  Pubkey      // receives the protocol fee on settle
+fee_bps:   u16         // currently 500 (5%)
+bump:      u8
+```
+
+Set at deploy time via `initialize_platform`. The authority can be rotated; the treasury can be moved to a multisig before mainnet.
+
+## Raffle
+
+Holds everything about one raffle.
+
+```
+creator:           Pubkey        // who created this; signs request_draw + reclaim_prize
+nonce:             u64           // creator-supplied; part of the seed
+prize_description: String        // free-text, ≤200 chars
+prize_type:        PrizeType     // Sol only in v0.1; Token/Nft/Physical reserved
+prize_amount:      u64           // lamports escrowed at create time
+ticket_price:      u64           // lamports per ticket
+max_tickets:       u32
+min_tickets:       u32
+tickets_sold:      u32           // incremented atomically by buy_ticket
+end_time:          i64           // unix seconds
+created_at:        i64
+state:             RaffleState   // Active | Drawing | Settled | Claimed | Cancelled
+winning_ticket:    Option<u32>   // set by settle_raffle
+winner:            Option<Pubkey>
+vrf_account:       Pubkey        // Switchboard randomness account, set by request_draw
+commit_slot:       u64           // Switchboard seed slot, set by request_draw
+bump:              u8
+```
+
+The state field guards every transition. `request_draw` requires `Active`, `settle_raffle` requires `Drawing`, `claim_prize` requires `Settled`, and so on. There is no path from `Settled` or `Cancelled` back to `Active`.
+
+## Vault
+
+A SystemAccount PDA with no custom data layout. It is just a SOL balance the program can sign for.
+
+```
+seeds: ["vault", raffle.key()]
+owner: system program
+data:  none (size = 0)
+```
+
+Funds in: `create_raffle` (prize escrow) and `buy_ticket` (ticket revenue). Funds out: `claim_prize`, `refund_ticket`, `reclaim_prize`. Each outbound transfer is a system_program CPI signed with the vault's seeds.
+
+## Ticket
+
+One per ticket purchased.
+
+```
+raffle:        Pubkey       // which raffle this belongs to
+buyer:         Pubkey       // who bought it
+ticket_number: u32          // sequential, starting from 0
+purchased_at:  i64          // unix seconds
+bump:          u8
+```
+
+Ticket PDAs are addressable by index, so once `settle_raffle` derives `winner_index = entropy % tickets_sold`, it can derive the matching Ticket PDA seed and compare the on-chain account to the one the caller passed. This prevents the caller from substituting a different Ticket account with a friendly buyer pubkey.
+
+The Ticket PDA is closed during `refund_ticket` (rent returned to buyer). On a settled raffle the Ticket PDA stays open; closing it is a v0.2 task.

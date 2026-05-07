@@ -29,10 +29,8 @@ export function CreatorSection() {
                 >
                   Create your first raffle
                 </Link>
-                <a
-                  href="https://github.com/meowyx/raffl/tree/main/docs"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/docs"
                   className="btn btn-ghost btn-lg"
                   style={{
                     color: "#f6f3ec",
@@ -40,7 +38,7 @@ export function CreatorSection() {
                   }}
                 >
                   Read the docs
-                </a>
+                </Link>
               </div>
             </div>
 

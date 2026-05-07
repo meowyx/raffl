@@ -1,0 +1,30 @@
+export const toc = [
+  { id: "where-it-lives", text: "Where it lives", level: 2 },
+  { id: "fetching-from-chain", text: "Fetching from chain", level: 2 },
+];
+
+# IDL
+
+The raffl program ships its IDL on-chain. Anchor publishes it during the same upload as the bytecode.
+
+<Callout variant="info" title="Reading the IDL">
+For the canonical, always-current IDL, fetch it from the deployed program. The version in the repo is a snapshot.
+</Callout>
+
+## Where it lives
+
+- **On chain.** Published to the program's metadata account at deployment. Anchor's CLI fetches it directly.
+- **In the repo.** [`web/lib/idl/raffl.json`](https://github.com/meowyx/raffl/blob/main/web/lib/idl/raffl.json) and [`program/target/idl/raffl.json`](https://github.com/meowyx/raffl/blob/main/program/target/idl/raffl.json). Same content, different paths. The repo copy gets refreshed when the program redeploys.
+- **In the Codama-generated client.** [`web/lib/program-client/`](https://github.com/meowyx/raffl/tree/main/web/lib/program-client) holds the typed TS client generated from the IDL. The frontend uses this for everything except the Switchboard settle flow.
+
+## Fetching from chain
+
+```bash
+anchor idl fetch Finb5eCnqTNm33ssqS2ofEnuoHzCmXaWfuXEn4HcaGRA \
+  --provider.cluster devnet \
+  --out raffl.json
+```
+
+Or with the Solana Explorer: [view the program](https://explorer.solana.com/address/Finb5eCnqTNm33ssqS2ofEnuoHzCmXaWfuXEn4HcaGRA?cluster=devnet) and click the **Anchor Program IDL** tab.
+
+The IDL describes nine instructions, four account layouts (`RafflePlatform`, `Raffle`, `Ticket`, plus the Switchboard `RandomnessAccountData` it reads), and the program's error enum. See [Instructions](/docs/instructions) for a per-call summary.

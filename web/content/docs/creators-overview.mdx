@@ -1,0 +1,39 @@
+export const toc = [
+  { id: "the-creator-flow", text: "The creator flow", level: 2 },
+  { id: "what-it-costs", text: "What it costs", level: 2 },
+  { id: "what-you-control", text: "What you control", level: 2 },
+  { id: "what-you-do-not", text: "What you do not", level: 2 },
+];
+
+# For creators
+
+Creators are the people who set up raffles. You pick the prize, the price, the cap, and the deadline. The chain handles everything after that.
+
+## The creator flow
+
+1. **Create.** Sign one transaction. The prize lamports get escrowed into a vault PDA. Your raffle is live and discoverable.
+2. **Promote.** Share the raffle link. Anyone with a wallet can buy in.
+3. **Settle.** When the deadline hits and tickets are above the minimum, hit **Settle**. Three Switchboard transactions later, the winner is on-chain.
+4. **Walk away.** The winner claims their prize. You receive your share of ticket revenue automatically (it ships in the same transaction the winner runs).
+
+## What it costs
+
+- **Prize escrow.** You pay the prize amount upfront. It sits in the vault until claim or reclaim.
+- **Rent.** A few thousand lamports for the Raffle PDA and the Vault PDA. Refunded when accounts close.
+- **Settle gas.** A small transaction fee plus Switchboard's commit-reveal cost. Typically under 0.005 SOL on devnet.
+
+## What you control
+
+- **Prize amount and description.** Up to 200 characters of free-text description.
+- **Ticket price.** Any non-zero amount of SOL.
+- **Max and min tickets.** Min must be at least 2. Max must be at least min and no greater than 100,000.
+- **End time.** Between 1 hour and 30 days from now.
+- **Nonce.** A u64 you pick at create time. Changes the raffle's address. Pick anything; the form generates one for you.
+
+## What you do not
+
+- **Override the winner.** Once `settle_raffle` runs, the winner is on-chain. You cannot un-settle.
+- **Change parameters mid-raffle.** Price, cap, deadline are immutable after create.
+- **Drain the vault.** Only `claim_prize`, `refund_ticket`, and `reclaim_prize` move money out, and they are gated on raffle state.
+
+If you want to walk through the form one field at a time, read [Create a raffle](/docs/create-raffle).

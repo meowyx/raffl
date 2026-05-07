@@ -1,0 +1,50 @@
+export const toc = [
+  { id: "the-protocol-fee", text: "The protocol fee", level: 2 },
+  { id: "limits", text: "Limits", level: 2 },
+  { id: "gas-and-rent", text: "Gas and rent", level: 2 },
+];
+
+# Fees and limits
+
+A short reference for the numbers that govern raffl.
+
+## The protocol fee
+
+| Field | Value |
+|---|---|
+| Fee | **5% of ticket revenue** (`fee_bps = 500`) |
+| Maximum allowed at deploy | 20% (`MAX_FEE_BPS = 2000`) |
+| Rounding | Ceiling division, in favor of treasury |
+| Charged on | Successful settle + claim |
+| Charged on cancel | None |
+
+The fee is calculated against ticket revenue, never against the prize. If a creator escrows 1 SOL as a prize and sells 50 tickets at 0.1 SOL each, the fee is `ceil(5 SOL * 0.05) = 0.25 SOL`. The 1 SOL prize transfers to the winner intact.
+
+## Limits
+
+| Constraint | Value | Where |
+|---|---|---|
+| Min tickets per raffle | 2 | `MIN_TICKETS_PER_RAFFLE` |
+| Max tickets per raffle | 100,000 | `MAX_TICKETS_PER_RAFFLE` |
+| Min raffle duration | 1 hour | enforced in `create_raffle` |
+| Max raffle duration | 30 days | enforced in `create_raffle` |
+| Min prize | 0.01 SOL | `MIN_PRIZE_AMOUNT_LAMPORTS = 10_000_000` |
+| Min ticket price | > 0 | enforced in `create_raffle` |
+| Prize description | ≤ 200 chars | enforced in `create_raffle` |
+| Stale-draw timeout | 1 hour past end_time | `STALE_DRAW_TIMEOUT_SECS = 3_600` |
+| Tickets per wallet | unbounded | v0.1 limitation |
+
+## Gas and rent
+
+Solana's per-tx fee is around 0.000005 SOL for a simple transfer. The raffl instructions are heavier (more accounts, more compute) but typically land under 0.0001 SOL per transaction.
+
+Rent for the PDAs:
+
+| Account | Approximate rent |
+|---|---|
+| `RafflePlatform` | ~0.0015 SOL (one-time, paid by deployer) |
+| `Raffle` | ~0.003 SOL (paid by creator at create time) |
+| `Vault` | dust (SystemAccount, no data) |
+| `Ticket` | ~0.0016 SOL (paid by buyer at buy time, refunded on cancel) |
+
+Settle adds the Switchboard randomness account creation cost (around 0.002 SOL) plus the commit and reveal transaction fees. Estimate roughly 0.005 SOL of overhead for a full create-buy-settle-claim cycle on devnet.

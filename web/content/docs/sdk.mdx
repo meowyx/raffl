@@ -1,0 +1,17 @@
+export const toc = [];
+
+# TS SDK
+
+A standalone TypeScript SDK is on the v0.4 roadmap. Today, the same building blocks are available inside the open-source repo.
+
+<Callout variant="info" title="Coming soon">
+A standalone `@raffl/sdk` package will wrap instruction building, account decoding, and the Switchboard settle flow into a single npm install. Until it ships, see below.
+</Callout>
+
+## What you can use today
+
+- **The IDL.** Pull it from the deployed program with `anchor idl fetch`, or use the snapshot at [`web/lib/idl/raffl.json`](https://github.com/meowyx/raffl/blob/main/web/lib/idl/raffl.json). Plug it into any Anchor client.
+- **The Codama-generated typed client.** [`web/lib/program-client/`](https://github.com/meowyx/raffl/tree/main/web/lib/program-client) is a `@solana/kit`-style typed client generated from the IDL. Reusable in any kit-based project.
+- **The Switchboard wrapper.** [`web/lib/switchboard.ts`](https://github.com/meowyx/raffl/blob/main/web/lib/switchboard.ts) shows the full three-transaction commit-reveal flow against an Anchor program.
+
+If you are building on raffl now, copy the patterns out of the `web/lib/` directory. The published SDK will package the same code with stable types and versioning.

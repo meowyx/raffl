@@ -72,7 +72,9 @@ Every step is on-chain and publicly verifiable. No off-chain randomness, no cust
 
 ## Documentation
 
-Deep-dive docs live under [`docs/`](./docs):
+Live docs site: [raffl.fun/docs](https://raffl.fun/docs)
+
+Repo-internal deep-dive docs under [`docs/`](./docs):
 
 - [Architecture overview](./docs/architecture.md) - components, account topology, money flow, trust boundaries
 - [Lifecycle](./docs/program/lifecycle.md) - state transitions and the happy path

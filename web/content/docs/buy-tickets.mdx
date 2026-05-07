@@ -1,0 +1,54 @@
+export const toc = [
+  { id: "find-a-raffle", text: "Find a raffle", level: 2 },
+  { id: "buy-a-ticket", text: "Buy a ticket", level: 2 },
+  { id: "track-your-tickets", text: "Track your tickets", level: 2 },
+  { id: "after-the-draw", text: "After the draw", level: 2 },
+];
+
+# Buying tickets
+
+Step-by-step from browse to confirmation.
+
+## Find a raffle
+
+[/explore](/explore) is the public catalogue. Filter chips at the top let you narrow to **Active**, **Closing soon**, **Settled**, or **All**. Each card shows the prize, ticket price, progress bar, and a countdown.
+
+If you are logged in, the **Buyer** tab on your [dashboard](/dashboard) also surfaces raffles closing soon and groups raffles where you already hold tickets.
+
+## Buy a ticket
+
+Click into any raffle. The detail page shows:
+
+- The prize and creator
+- Ticket price and current progress (`ticketsSold / maxTickets`)
+- A **Buy a ticket** button (or **Connect to interact** if you are not logged in)
+
+Click **Buy a ticket**. Your wallet prompts to sign one transaction. The toast pipeline walks through three phases:
+
+1. **Preparing.** Building the instruction.
+2. **Signing.** Wallet popup; approve.
+3. **Confirming.** Watching for the on-chain confirmation.
+
+On success, the progress bar bumps by one and your wallet's balance drops by the ticket price plus a small gas fee.
+
+<Callout variant="info" title="Multiple tickets">
+There is no built-in "buy N at once" in v0.1. To hold multiple tickets in the same raffle, click **Buy a ticket** multiple times. Each click is a separate transaction.
+</Callout>
+
+## Track your tickets
+
+Open the [dashboard](/dashboard) **Buyer** tab. The **My tickets** panel groups every raffle where you hold at least one ticket, showing your count, your win odds (`1 in N`), and the time remaining.
+
+The realtime layer subscribes to program account changes via WebSocket, so the counter updates as other people buy. No refresh needed.
+
+## After the draw
+
+When the creator runs **Settle**, three things happen in sequence:
+
+1. The Switchboard randomness account commits to a slot.
+2. The oracle reveals the entropy.
+3. `settle_raffle` records the winning ticket number and the winner's pubkey on the raffle account.
+
+If your wallet matches the recorded winner, the raffle detail page shows a **Claim prize** button. See [Claiming prizes](/docs/claim-prize) for the rest.
+
+If the raffle gets cancelled instead of settled, the same dashboard shows a **Refund** button per raffle. You get your ticket price back, plus the rent that funded each Ticket PDA.

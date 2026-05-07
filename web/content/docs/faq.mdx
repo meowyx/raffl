@@ -1,0 +1,46 @@
+export const toc = [
+  { id: "is-this-mainnet", text: "Is this on mainnet", level: 2 },
+  { id: "do-i-need-a-wallet", text: "Do I need a wallet", level: 2 },
+  { id: "what-prizes-can-i-give", text: "What prizes can I give away", level: 2 },
+  { id: "how-is-the-winner-picked", text: "How is the winner picked", level: 2 },
+  { id: "can-the-creator-rig-it", text: "Can the creator rig it", level: 2 },
+  { id: "what-if-no-one-buys", text: "What if no one buys", level: 2 },
+  { id: "what-if-the-creator-disappears", text: "What if the creator disappears", level: 2 },
+  { id: "is-it-open-source", text: "Is it open source", level: 2 },
+];
+
+# FAQ
+
+## Is this on mainnet
+
+Not yet. raffl is on Solana **devnet** for v0.1, so nothing costs real money. The program has been audited internally, and mainnet ships after the hackathon.
+
+## Do I need a wallet
+
+Yes, but you do not need a hardware or browser-extension wallet. Login with email or Google and Privy mints an embedded wallet on your behalf. If you already have Phantom or Solflare, those work too.
+
+## What prizes can I give away
+
+In v0.1: SOL only. SPL tokens, NFTs, and physical prizes are reserved in the program but the create form gates them off until v0.2.
+
+## How is the winner picked
+
+A Switchboard On-Demand oracle commits to a future slot, then reveals a 32-byte signed random value. The program reads the first 8 bytes as a `u64`, computes `winner_index = entropy % tickets_sold` on-chain, and looks up the matching Ticket PDA. None of this is server-side. See [Switchboard VRF](/docs/vrf).
+
+## Can the creator rig it
+
+The creator picks **when** to draw (subject to `request_draw` only being callable when `tickets_sold >= min_tickets`). They cannot pick the random value. The Switchboard oracle is signed in an SGX enclave; the chain verifies the signature; the program re-derives the index. The creator's only griefing power is to never draw at all, which leaves the prize stuck but unrecoverable to anyone (including them).
+
+## What if no one buys
+
+If the deadline hits with `tickets_sold < min_tickets`, anyone can run `cancel_raffle`. The creator reclaims the prize via `reclaim_prize`. No fee charged.
+
+## What if the creator disappears
+
+If the raffle is **Active** and under min tickets at the deadline, anyone cancels. If the raffle is in **Drawing** but the creator never reveals, anyone can cancel after one hour past the deadline. Buyers refund.
+
+If the raffle is sold out but the creator never starts the draw, v0.1 has no recovery path. The funds stay in the vault. v0.2 will add a creator-bonded model with timeouts.
+
+## Is it open source
+
+Yes. [github.com/meowyx/raffl](https://github.com/meowyx/raffl). The Anchor program is under `program/`; the website is under `web/`. The IDL is published on-chain; technical documentation lives under `docs/` in the repo and is mirrored on this site.

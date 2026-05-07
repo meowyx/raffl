@@ -1,0 +1,39 @@
+export const toc = [
+  { id: "what-is-raffl", text: "What is raffl", level: 2 },
+  { id: "who-its-for", text: "Who it's for", level: 2 },
+  { id: "what-makes-it-different", text: "What makes it different", level: 2 },
+  { id: "the-honest-cuts", text: "The honest cuts", level: 2 },
+];
+
+# Introduction
+
+raffl is a permissionless on-chain raffle platform on Solana. Anyone creates a raffle, deposits a prize, sets a ticket price. Buyers enter, a verifiable random function picks the winner. No operator picks the winner, no one can override a settled raffle, and the protocol takes a single fixed fee on settlement.
+
+## What is raffl
+
+Three things, glued together: a Solana program written in Anchor that owns all state and money, a Switchboard On-Demand integration that supplies verifiable randomness, and a Next.js web app where most users click buttons rather than write code.
+
+Once a raffle is created, every state transition happens on-chain. Funds sit in program-derived vaults that only the program can sign for. There is no backend service in the loop.
+
+## Who it's for
+
+**Creators** who want to give something away (an NFT, an amount of SOL, a community item) and let the chain pick fairly. They deposit the prize at create time and reclaim it if the raffle never sells out.
+
+**Buyers** who want a verifiable shot at a prize. They pay ticket price into the vault, get a Ticket account back, and can prove on-chain that the draw was honest.
+
+**Builders** who want to read the IDL, fork the program, or call it from their own Anchor program through CPI. The program is open source on [GitHub](https://github.com/meowyx/raffl).
+
+## What makes it different
+
+- **Verifiable fairness.** Random source is Switchboard On-Demand. The winner is derived on-chain from oracle entropy, not chosen by a server.
+- **No operator custody.** The vault is a PDA. Even the protocol authority cannot drain it.
+- **Permissionless.** Anyone can create a raffle, anyone can buy a ticket, and once a raffle is sold out anyone can settle it.
+- **Recoverable.** Under-subscribed raffles cancel cleanly and refund every buyer.
+
+## The honest cuts
+
+<Callout variant="info" title="v0.1 is small on purpose">
+For the hackathon launch, raffl supports SOL prizes, SOL ticket payments, and devnet only. SPL tokens, NFTs, USDC ticket pricing, and mainnet are post-hackathon. The program has been audited internally; mainnet ships after the hackathon.
+</Callout>
+
+Read [Getting started](/docs/getting-started) to run your first raffle on devnet, or [Core concepts](/docs/core-concepts) if you want the model first.

@@ -1,0 +1,66 @@
+export const toc = [
+  { id: "what-gets-paid", text: "What gets paid", level: 2 },
+  { id: "the-math", text: "The math", level: 2 },
+  { id: "why-ceiling", text: "Why ceiling division", level: 2 },
+  { id: "what-the-creator-receives", text: "What the creator receives", level: 2 },
+  { id: "what-happens-on-cancel", text: "What happens on cancel", level: 2 },
+];
+
+# Payouts
+
+When a raffle settles and the winner claims, the vault makes three transfers in one atomic instruction. Here is the arithmetic.
+
+## What gets paid
+
+The winner receives the original prize amount. The treasury receives the protocol fee, calculated against ticket revenue. The creator receives ticket revenue minus the fee. Three transfers, one transaction.
+
+```
+vault                                  after claim:
+  prize_amount   ----> winner          vault ~= 0
+  ticket_revenue ---+-> treasury fee
+                    \-> creator share
+```
+
+## The math
+
+```rust
+ticket_revenue = ticket_price * tickets_sold
+treasury_fee   = ceil(ticket_revenue * fee_bps / 10_000)
+creator_share  = ticket_revenue - treasury_fee
+```
+
+`fee_bps` is set at platform initialization, capped at 2000 (20%), and currently 500 (5%). It applies to ticket revenue only, not the prize.
+
+The prize amount is whatever the creator escrowed. It is never reduced by the protocol; it transfers to the winner intact.
+
+## Why ceiling division
+
+When the multiplication produces a remainder, the rounding remainder (always one lamport or less) always favors the treasury. Floor division would leak that one lamport to the creator. The design principle is **the protocol fee always rounds up to the treasury**, never down. Over many raffles this is a vanishing amount, but the rule is consistent.
+
+Internally the math runs in u128 to avoid intermediate overflow, then narrows back to u64 at the boundaries.
+
+## What the creator receives
+
+For a 1,000-ticket raffle at 0.1 SOL per ticket with the 5% fee:
+
+```
+ticket_revenue = 1000 * 0.1 = 100 SOL
+treasury_fee   = ceil(100 * 500 / 10000) = 5 SOL
+creator_share  = 100 - 5 = 95 SOL
+```
+
+The winner separately receives whatever prize the creator escrowed at create time.
+
+The dashboard's **Payout receipts** card breaks creator earnings into three buckets:
+
+- **Accruing.** Active and Drawing raffles. Money is in the vault but not yet earmarked.
+- **Pending.** Settled raffles waiting for the winner to run `claim_prize`. The 95% is sitting in the vault.
+- **Received.** Claimed raffles where `claim_prize` has fired. The creator share has hit the creator's wallet.
+
+Creators get paid automatically when the winner claims; there is no separate creator-claim transaction.
+
+## What happens on cancel
+
+No fee. If a raffle moves to **Cancelled** instead of **Settled**, `refund_ticket` returns each buyer's ticket price exactly, and `reclaim_prize` returns the original prize escrow exactly. The treasury receives nothing.
+
+The audit caught the original `floor` division as a "creator-favoring rounding" bug; it is now `ceil`. See [Verify a draw](/docs/verify-draw) for how to inspect the math on a real settled raffle.

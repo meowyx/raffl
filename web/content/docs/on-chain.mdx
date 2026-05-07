@@ -1,0 +1,88 @@
+export const toc = [
+  { id: "three-pieces", text: "Three pieces", level: 2 },
+  { id: "lifecycle", text: "Lifecycle", level: 2 },
+  { id: "trust-boundaries", text: "Trust boundaries", level: 2 },
+  { id: "money-flow", text: "Money flow", level: 2 },
+];
+
+# On-chain program
+
+raffl is three components that talk to each other:
+
+1. An **Anchor program** on Solana (Rust) that owns all state and money.
+2. A **Next.js frontend** that builds and signs transactions on the user's behalf.
+3. **Switchboard On-Demand VRF** that supplies verifiable randomness.
+
+There is no backend service. Once a raffle is created, every state transition happens on-chain. The frontend reads accounts, builds instructions, and asks the wallet to sign.
+
+## Three pieces
+
+The Anchor program has 9 instructions: `initialize_platform`, `create_raffle`, `buy_ticket`, `request_draw`, `settle_raffle`, `claim_prize`, `cancel_raffle`, `refund_ticket`, `reclaim_prize`. See [Instructions](/docs/instructions) for the per-call detail.
+
+The frontend is the website at [raffl.fun](https://raffl.fun). It uses `@solana/kit` plus a Codama-generated typed client for everything except the Switchboard settle flow, which uses Anchor + `@solana/web3.js` v1 because Switchboard's TS SDK has no kit-native variant yet.
+
+Switchboard On-Demand handles the randomness via a commit-reveal pattern. Our program never CPIs into Switchboard; it just reads `RandomnessAccountData` directly and verifies the owner, freshness, and binding. See [Switchboard VRF](/docs/vrf).
+
+## Lifecycle
+
+```
+[create_raffle]    creator escrows prize into PDA vault
+       |
+       v
+   Active   <-- buy_ticket  (anyone, while end_time > now)
+       |
+       |  end_time reached OR sold out, AND tickets_sold >= min_tickets
+       v
+[request_draw]    creator commits to a Switchboard randomness account
+       |          (in the same tx as Switchboard's commitIx)
+       v
+   Drawing
+       |
+       |  one slot later, Switchboard reveals the value
+       v
+[settle_raffle]   anyone reveals + computes winner
+       |          (entropy % tickets_sold), atomically
+       v
+   Settled
+       |
+       v
+[claim_prize]     winner signs; vault pays winner, treasury, creator
+       |
+       v
+   Claimed
+```
+
+The two off-ramps are `cancel_raffle` followed by `refund_ticket` for buyers and `reclaim_prize` for creators. See [Manage and cancel](/docs/manage-raffle).
+
+## Trust boundaries
+
+| Action | Who can do it | Enforced how |
+|---|---|---|
+| Create a raffle | Anyone with SOL | Permissionless. Creator escrows the prize at create time. |
+| Buy a ticket | Anyone | Permissionless. Each ticket is a separate PDA at index `tickets_sold`. |
+| Initiate the draw | Raffle creator only | `has_one = creator` constraint on `request_draw`. See [VRF](/docs/vrf) for why. |
+| Settle the draw | Anyone | Math is re-derived on-chain. Caller cannot pick the winner. |
+| Claim the prize | Recorded winner only | `winner.key() == raffle.winner` check in `claim_prize`. |
+| Cancel | Anyone, only when conditions met | Permissionless but gated. |
+| Refund a ticket | The buyer of that ticket | `ticket.buyer == buyer.key()` constraint. |
+| Reclaim prize | Raffle creator | `has_one = creator`. |
+| Drain a vault directly | No one | Vault is a SystemAccount PDA; only the program can sign for it. |
+
+The protocol authority (set by `initialize_platform`) controls only the fee bps and the treasury pubkey. It cannot touch raffle vaults or override winners.
+
+## Money flow
+
+```
+creator ----prize_amount----> vault
+buyer   ----ticket_price----> vault   (xN)
+                              |
+                              | (claim_prize, atomic, three transfers)
+                              |
+                              +---> winner    (prize_amount)
+                              +---> treasury  (ceil(revenue * fee_bps / 10000))
+                              +---> creator   (revenue - treasury fee)
+```
+
+`ticket_revenue = ticket_price * tickets_sold`. The fee uses ceiling division so rounding goes to treasury. See [Payouts](/docs/payouts) for the full arithmetic.
+
+On a cancelled raffle, the vault pays buyers (`refund_ticket`) and the creator (`reclaim_prize`). No fee is taken on cancellation.

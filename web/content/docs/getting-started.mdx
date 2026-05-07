@@ -1,0 +1,45 @@
+export const toc = [
+  { id: "before-you-start", text: "Before you start", level: 2 },
+  { id: "connect-a-wallet", text: "Connect a wallet", level: 2 },
+  { id: "create-or-buy", text: "Create or buy", level: 2 },
+  { id: "watch-it-settle", text: "Watch it settle", level: 2 },
+  { id: "where-next", text: "Where next", level: 2 },
+];
+
+# Getting started
+
+Run your first raffle on devnet in under five minutes. No SDK, no CLI: the website is the product. You will need a Solana wallet and a sprinkle of devnet SOL.
+
+<Callout variant="info" title="Prerequisites">
+A Solana wallet (Phantom or Solflare browser extension, or a Privy email login that mints an embedded wallet for you). Some devnet SOL from a faucet such as [faucet.solana.com](https://faucet.solana.com) if you plan to create or buy.
+</Callout>
+
+## Before you start
+
+raffl is on Solana devnet. Anything you create on devnet uses test SOL and never costs real money. If you do not have a wallet yet, the easiest path is to log in with email at the top right of the page; Privy mints an embedded wallet on your behalf.
+
+<Callout variant="warn" title="Stay on devnet">
+The program is permissionless: anything you create with real funds would be real and irreversible. raffl ships on devnet only for v0.1. Mainnet comes after the hackathon.
+</Callout>
+
+## Connect a wallet
+
+Click **Login** at the top right. Pick a wallet (Phantom or Solflare) or sign in with email, Google, or Twitter for an embedded wallet. The dropdown that replaces the Login button shows the active address; click it to copy or disconnect.
+
+## Create or buy
+
+From here you can do two things:
+
+- **Browse and buy.** Visit [/explore](/explore) or your [dashboard](/dashboard) Buyer tab and click into any open raffle. Hit **Buy a ticket**. The toast pipeline walks you through preparing, signing, and confirming.
+- **Create your own.** Hit **+ Create raffle** on the dashboard or go to [/dashboard/create](/dashboard/create). Fill in the prize amount, ticket price, max and min tickets, and end time, then sign once to escrow the prize.
+
+## Watch it settle
+
+When a raffle hits its end time and has cleared the minimum ticket threshold, the creator runs **Settle** on the raffle page. The button kicks off a three-transaction Switchboard commit-reveal pipeline. Once it confirms, the raffle moves to **Settled** and the winner is recorded on-chain. The winner can then click **Claim prize** to release the funds: prize to winner, protocol fee to treasury, ticket revenue to creator. All three transfers happen atomically.
+
+## Where next
+
+- [Core concepts](/docs/core-concepts) covers the data model (raffles, tickets, vaults, states).
+- [Create a raffle](/docs/create-raffle) walks through every field of the create form.
+- [Switchboard VRF](/docs/vrf) explains how the winner gets picked and what guarantees that.
+- [FAQ](/docs/faq) answers the questions that come up first.

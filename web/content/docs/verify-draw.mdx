@@ -1,0 +1,59 @@
+export const toc = [
+  { id: "what-you-can-prove", text: "What you can prove", level: 2 },
+  { id: "step-by-step", text: "Step-by-step", level: 2 },
+  { id: "what-could-be-wrong", text: "What could be wrong", level: 2 },
+];
+
+# Verify a draw
+
+Every settled raffle leaves a trail you can audit. Here is how to walk it.
+
+## What you can prove
+
+Three things, end-to-end:
+
+1. **The randomness was real.** It came from a Switchboard On-Demand oracle, signed off-chain inside an SGX enclave, and verified on-chain at reveal time.
+2. **The math was honest.** `winner_index = entropy % tickets_sold`. You can re-derive it yourself from the on-chain randomness value.
+3. **The winner is the actual winner.** The Ticket PDA at `["ticket", raffle, winner_index]` is the one whose buyer is recorded on the raffle account. Anchor's seeds constraint guarantees the index in the seed matches the index stored on the Ticket.
+
+## Step-by-step
+
+For a settled raffle at address `R`:
+
+1. **Fetch the raffle account.** `solana account R --output json` or read it via the IDL. Note `vrf_account`, `commit_slot`, `winning_ticket`, and `winner`.
+2. **Fetch the Switchboard randomness account.** `solana account <vrf_account> --output json`. Confirm:
+   - The account is owned by the Switchboard On-Demand program.
+   - `seed_slot` matches `raffle.commit_slot`.
+   - `value` is non-zero (the reveal completed).
+3. **Re-derive the winner index.**
+
+   ```js
+   const valueBytes = Uint8Array.from(randomness.value); // 32 bytes
+   const entropy = readU64LE(valueBytes.slice(0, 8));
+   const expectedIndex = Number(entropy % BigInt(raffle.tickets_sold));
+   ```
+
+   This must equal `raffle.winning_ticket`.
+4. **Re-derive the Ticket PDA.**
+
+   ```js
+   const [ticketPda] = PublicKey.findProgramAddressSync(
+     [Buffer.from("ticket"), raffle.toBuffer(), u32LE(expectedIndex)],
+     RAFFL_PROGRAM_ID,
+   );
+   ```
+
+   Fetch that account. Its `buyer` field must equal `raffle.winner`.
+
+If all four checks pass, the draw is verifiable.
+
+## What could be wrong
+
+These are the things that **cannot** be wrong (the program rejects them at settle time):
+
+- A different randomness account being substituted: blocked by the `vrf_account` binding check.
+- A non-Switchboard fake account: blocked by the owner check.
+- A pre-revealed value: blocked by the freshness check at `request_draw`.
+- A Ticket PDA from a different index: blocked by the seeds constraint plus the on-chain math comparison.
+
+What can be wrong is the modulo bias for very large ticket counts. At 100,000 tickets the bias is around 5e-15, well below any threshold a human can detect. The protocol does not use rejection sampling; it documents the bias instead.

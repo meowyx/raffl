@@ -39,13 +39,7 @@ export function Footer() {
               </a>
             </li>
             <li>
-              <a
-                href="https://github.com/meowyx/raffl/tree/main/docs"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Docs
-              </a>
+              <Link href="/docs">Docs</Link>
             </li>
             <li>
               <a

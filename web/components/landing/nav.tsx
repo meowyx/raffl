@@ -24,13 +24,12 @@ export function Nav({ active = "home" }: NavProps) {
           >
             Dashboard
           </Link>
-          <a
-            href="https://github.com/meowyx/raffl/tree/main/docs"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/docs"
+            className={active === "docs" ? "active" : ""}
           >
             Docs
-          </a>
+          </Link>
         </div>
         <div className="nav-cta">
           <ConnectButton />
@@ -74,14 +73,13 @@ export function Nav({ active = "home" }: NavProps) {
           >
             Dashboard
           </Link>
-          <a
-            href="https://github.com/meowyx/raffl/tree/main/docs"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/docs"
+            className={active === "docs" ? "active" : ""}
             onClick={close}
           >
             Docs
-          </a>
+          </Link>
           <Link href="/dashboard" className="btn btn-primary" onClick={close}>
             Launch app
           </Link>
