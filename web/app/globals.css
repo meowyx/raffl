@@ -1091,6 +1091,10 @@ button { font-family: inherit; cursor: pointer; }
   padding-top: 14px;
   border-top: 1px solid rgba(246, 243, 236, 0.1);
 }
+.payouts-card .breakdown.breakdown-3 {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
 .payouts-card .breakdown .b-lbl {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
@@ -1202,6 +1206,18 @@ button { font-family: inherit; cursor: pointer; }
   .wallet-pill .balance { display: none; }
   .wallet-pill .addr { padding-left: 0; border-left: 0; }
   .wallet-pill { padding: 6px 12px; font-size: 12px; }
+
+  /* Tabs row: tighter gap, and let Explore flow with the rest (no margin-left: auto) */
+  .dash-tabs { gap: 18px; }
+  .dash-tab-link { margin-left: 0; }
+
+  /* PayoutsCard 3-col breakdown crams below 720px — stack to 2 cols (Accruing on its own row) */
+  .payouts-card .breakdown.breakdown-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .payouts-card .breakdown.breakdown-3 > :first-child {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 480px) {

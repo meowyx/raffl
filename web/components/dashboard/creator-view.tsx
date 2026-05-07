@@ -50,7 +50,7 @@ export function CreatorView({ now, raffles, recentTickets, me }: Props) {
       <div className="dash-main">
         <CreatorRaffleList list={open} now={now} />
         <div className="dash-side">
-          <PayoutsCard settled={settled} me={me} />
+          <PayoutsCard myRaffles={mine} />
           <BuyerFeed tickets={ticketsForMyRaffles} raffles={raffles} now={now} />
         </div>
       </div>
@@ -199,13 +199,28 @@ function CreatorRaffleRow({ raffle: r, now }: { raffle: Raffle; now: number }) {
   );
 }
 
-function PayoutsCard({ settled, me }: { settled: Raffle[]; me: string | null }) {
-  const myRaffles = me ? settled.filter((r) => r.creator === me) : [];
+function PayoutsCard({ myRaffles }: { myRaffles: Raffle[] }) {
   const claimed = myRaffles.filter((r) => r.state === "claimed");
-  const pendingClaim = myRaffles.filter((r) => r.state === "settled");
+  const settledUnclaimed = myRaffles.filter((r) => r.state === "settled");
+  const accruing = myRaffles.filter(
+    (r) => r.state === "active" || r.state === "drawing",
+  );
+
   const receivedSol = claimed.reduce((acc, r) => acc + revenueSol(r) * 0.95, 0);
-  const pendingSol = pendingClaim.reduce((acc, r) => acc + revenueSol(r) * 0.95, 0);
-  const totalSol = receivedSol + pendingSol;
+  const pendingSol = settledUnclaimed.reduce(
+    (acc, r) => acc + revenueSol(r) * 0.95,
+    0,
+  );
+  const accruingSol = accruing.reduce((acc, r) => acc + revenueSol(r) * 0.95, 0);
+  const totalSol = receivedSol + pendingSol + accruingSol;
+
+  let buttonLabel: string;
+  if (totalSol === 0) buttonLabel = "No payouts yet";
+  else if (accruingSol > 0)
+    buttonLabel = `${accruingSol.toFixed(2)} SOL accruing in active raffles`;
+  else if (pendingSol > 0)
+    buttonLabel = `${pendingSol.toFixed(2)} SOL pending winner claim`;
+  else buttonLabel = `${receivedSol.toFixed(2)} SOL auto-paid`;
 
   return (
     <div className="payouts-card">
@@ -223,23 +238,24 @@ function PayoutsCard({ settled, me }: { settled: Raffle[]; me: string | null }) 
         disabled
         title="Earnings settle automatically when the winner claims their prize"
       >
-        {totalSol === 0
-          ? "No payouts yet"
-          : pendingSol > 0
-            ? `${pendingSol.toFixed(2)} SOL pending winner claim`
-            : `${receivedSol.toFixed(2)} SOL auto-paid`}
+        {buttonLabel}
       </button>
       <p style={{ margin: 0, fontSize: 12, opacity: 0.7, textAlign: "center" }}>
-        Your 95% of ticket revenue lands in your wallet automatically when the winner claims.
+        Your 95% of ticket revenue. Sits in the raffle vault while the raffle is
+        running, then lands in your wallet when the winner claims.
       </p>
-      <div className="breakdown">
+      <div className="breakdown breakdown-3">
         <div>
-          <div className="b-lbl">Received</div>
-          <div className="b-val">{receivedSol.toFixed(2)} SOL</div>
+          <div className="b-lbl">Accruing</div>
+          <div className="b-val">{accruingSol.toFixed(2)} SOL</div>
         </div>
         <div>
           <div className="b-lbl">Pending</div>
           <div className="b-val">{pendingSol.toFixed(2)} SOL</div>
+        </div>
+        <div>
+          <div className="b-lbl">Received</div>
+          <div className="b-val">{receivedSol.toFixed(2)} SOL</div>
         </div>
       </div>
     </div>
