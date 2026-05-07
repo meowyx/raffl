@@ -1,32 +1,43 @@
 "use client";
 
 // Real on-chain reads for the raffl program.
-// Returns view-model objects shaped identically to web/lib/mock-data.ts so the
-// dashboard components can swap mock for real with a single import change.
+// Returns view-model objects shaped per `lib/types.ts` so dashboard components
+// stay agnostic to the data source.
 //
 // Architecture:
 //   1. rpc.ts          → kit RPC against /api/rpc (Helius proxied) + WS to devnet
 //   2. program-client/ → Codama-generated decoders + instruction builders
 //   3. program.ts (this file) → discriminator-filtered fetches + chain→view-model adapters
 //
-// Components consume `Raffle` / `Ticket` view models. Both mock-data.ts and this
-// module produce that shape; components don't know or care which one rendered.
+// Components consume `Raffle` / `Ticket` view models from `lib/types.ts`.
 
-import { isSome, type Address, type Base58EncodedBytes } from "@solana/kit";
+import {
+  isSome,
+  type Address,
+  type ReadonlyUint8Array,
+} from "@solana/kit";
 import {
   RAFFLE_DISCRIMINATOR,
   TICKET_DISCRIMINATOR,
   decodeRaffle,
   decodeTicket,
   fetchMaybeRaffle as fetchMaybeRaffleAccount,
+  fetchMaybeRafflePlatform,
 } from "@/lib/program-client/src/generated/accounts";
+import { findPlatformPda } from "@/lib/program-client/src/generated/pdas";
 import { RAFFL_PROGRAM_ADDRESS } from "@/lib/program-client/src/generated/programs";
 import {
   PrizeType as ChainPrizeType,
   RaffleState as ChainRaffleState,
 } from "@/lib/program-client/src/generated/types";
 import { rpc } from "./rpc";
-import type { PrizeType, Raffle, RaffleState, Ticket } from "./mock-data";
+import type { PrizeType, Raffle, RaffleState, Ticket } from "./types";
+
+export type Platform = {
+  authority: string;
+  treasury: string;
+  feeBps: number;
+};
 
 // ---- Adapters: chain shape → view-model ----
 
@@ -107,9 +118,12 @@ function bytesToBase58(bytes: Uint8Array): string {
     "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
   let zeros = 0;
   while (zeros < bytes.length && bytes[zeros] === 0) zeros++;
-  let length = 0;
-  const size = ((bytes.length - zeros) * 138) / 100 + 1;
+  // Math.ceil keeps `size` an integer — using a float here breaks
+  // Uint8Array indexing in the result-collection loop and yields garbage
+  // strings (e.g. "11" instead of the real 32-byte pubkey).
+  const size = Math.ceil(((bytes.length - zeros) * 138) / 100) + 1;
   const buf = new Uint8Array(size);
+  let length = 0;
   for (let i = zeros; i < bytes.length; i++) {
     let carry = bytes[i] ?? 0;
     let j = 0;
@@ -127,38 +141,44 @@ function bytesToBase58(bytes: Uint8Array): string {
   return str;
 }
 
-const RAFFLE_DISC_BS58 = bytesToBase58(
-  new Uint8Array(RAFFLE_DISCRIMINATOR),
-) as Base58EncodedBytes;
-const TICKET_DISC_BS58 = bytesToBase58(
-  new Uint8Array(TICKET_DISCRIMINATOR),
-) as Base58EncodedBytes;
-
 // ---- Fetchers ----
 
 export async function fetchAllRaffles(): Promise<Raffle[]> {
+  // Fetch all program accounts and filter by discriminator client-side.
+  // The kit memcmp filter with `offset: 0n` was returning empty results — the
+  // BigInt apparently doesn't round-trip through the JSON-RPC layer cleanly.
   const response = await rpc
-    .getProgramAccounts(RAFFL_PROGRAM_ADDRESS, {
-      encoding: "base64",
-      filters: [
-        { memcmp: { offset: 0n, bytes: RAFFLE_DISC_BS58, encoding: "base58" } },
-      ],
-    })
+    .getProgramAccounts(RAFFL_PROGRAM_ADDRESS, { encoding: "base64" })
     .send();
 
-  return response.map((item) => {
-    const [b64] = item.account.data;
-    const bytes = base64ToBytes(b64);
-    const decoded = decodeRaffle({
-      address: item.pubkey,
-      data: bytes,
-      executable: item.account.executable,
-      lamports: item.account.lamports,
-      programAddress: item.account.owner,
-      space: BigInt(bytes.length),
-    });
-    return adaptRaffle(item.pubkey, decoded.data);
-  });
+  const raffles: Raffle[] = [];
+  for (const item of response) {
+    try {
+      const [b64] = item.account.data;
+      const bytes = base64ToBytes(b64);
+      if (!bytesStartsWith(bytes, RAFFLE_DISCRIMINATOR)) continue;
+      const decoded = decodeRaffle({
+        address: item.pubkey,
+        data: bytes,
+        executable: item.account.executable,
+        lamports: item.account.lamports,
+        programAddress: item.account.owner,
+        space: BigInt(bytes.length),
+      });
+      raffles.push(adaptRaffle(item.pubkey, decoded.data));
+    } catch (err) {
+      console.error("[fetchAllRaffles] decode failed for", item.pubkey, err);
+    }
+  }
+  return raffles;
+}
+
+function bytesStartsWith(bytes: Uint8Array, prefix: ReadonlyUint8Array): boolean {
+  if (bytes.length < prefix.length) return false;
+  for (let i = 0; i < prefix.length; i++) {
+    if (bytes[i] !== prefix[i]) return false;
+  }
+  return true;
 }
 
 export async function fetchRaffle(pubkey: string): Promise<Raffle | null> {
@@ -167,29 +187,35 @@ export async function fetchRaffle(pubkey: string): Promise<Raffle | null> {
   return adaptRaffle(maybe.address, maybe.data);
 }
 
-async function fetchTicketsByMemcmp(
-  fieldOffset: bigint,
-  matchPubkey: string,
-): Promise<Ticket[]> {
-  const response = await rpc
-    .getProgramAccounts(RAFFL_PROGRAM_ADDRESS, {
-      encoding: "base64",
-      filters: [
-        { memcmp: { offset: 0n, bytes: TICKET_DISC_BS58, encoding: "base58" } },
-        {
-          memcmp: {
-            offset: fieldOffset,
-            bytes: matchPubkey as Base58EncodedBytes,
-            encoding: "base58",
-          },
-        },
-      ],
-    })
-    .send();
+export async function fetchPlatform(): Promise<Platform | null> {
+  const [pda] = await findPlatformPda();
+  const maybe = await fetchMaybeRafflePlatform(rpc, pda);
+  if (maybe.exists === false) return null;
+  return {
+    authority: maybe.data.authority as string,
+    treasury: maybe.data.treasury as string,
+    feeBps: maybe.data.feeBps,
+  };
+}
 
-  return response.map((item) => {
-    const [b64] = item.account.data;
+// Ticket layout: [8 disc][32 raffle][32 buyer][4 ticket_number][8 purchased_at][1 bump]
+const TICKET_RAFFLE_OFFSET = 8;
+const TICKET_BUYER_OFFSET = 40;
+
+async function fetchAllRawProgramAccounts() {
+  return rpc
+    .getProgramAccounts(RAFFL_PROGRAM_ADDRESS, { encoding: "base64" })
+    .send();
+}
+
+type RawProgramAccount = Awaited<ReturnType<typeof fetchAllRawProgramAccounts>>[number];
+
+function decodeTicketSafe(item: RawProgramAccount): { bytes: Uint8Array; ticket: Ticket } | null {
+  try {
+    const data = item.account.data;
+    const b64 = Array.isArray(data) ? data[0] : (data as unknown as string);
     const bytes = base64ToBytes(b64);
+    if (!bytesStartsWith(bytes, TICKET_DISCRIMINATOR)) return null;
     const decoded = decodeTicket({
       address: item.pubkey,
       data: bytes,
@@ -198,47 +224,52 @@ async function fetchTicketsByMemcmp(
       programAddress: item.account.owner,
       space: BigInt(bytes.length),
     });
-    return adaptTicket(item.pubkey, decoded.data);
-  });
+    return { bytes, ticket: adaptTicket(item.pubkey, decoded.data) };
+  } catch (err) {
+    console.error("[decodeTicket] failed for", item.pubkey, err);
+    return null;
+  }
 }
 
-// Ticket layout: [8 disc][32 raffle][32 buyer][4 ticket_number][8 purchased_at][1 bump]
-// Filter on raffle pubkey at offset 8.
-export function fetchTicketsForRaffle(rafflePubkey: string): Promise<Ticket[]> {
-  return fetchTicketsByMemcmp(8n, rafflePubkey);
+function readPubkeyAt(bytes: Uint8Array, offset: number): string {
+  // Base58-encode 32 bytes starting at `offset`. We already have a bytes→base58
+  // helper above; reuse it.
+  return bytesToBase58(bytes.slice(offset, offset + 32));
 }
 
-// Filter on buyer pubkey at offset 8 + 32 = 40.
-export function fetchTicketsForBuyer(buyerPubkey: string): Promise<Ticket[]> {
-  return fetchTicketsByMemcmp(40n, buyerPubkey);
+export async function fetchTicketsForRaffle(rafflePubkey: string): Promise<Ticket[]> {
+  const response = await fetchAllRawProgramAccounts();
+  const tickets: Ticket[] = [];
+  for (const item of response) {
+    const decoded = decodeTicketSafe(item);
+    if (!decoded) continue;
+    if (readPubkeyAt(decoded.bytes, TICKET_RAFFLE_OFFSET) !== rafflePubkey) continue;
+    tickets.push(decoded.ticket);
+  }
+  return tickets;
+}
+
+export async function fetchTicketsForBuyer(buyerPubkey: string): Promise<Ticket[]> {
+  const response = await fetchAllRawProgramAccounts();
+  const tickets: Ticket[] = [];
+  for (const item of response) {
+    const decoded = decodeTicketSafe(item);
+    if (!decoded) continue;
+    if (readPubkeyAt(decoded.bytes, TICKET_BUYER_OFFSET) !== buyerPubkey) continue;
+    tickets.push(decoded.ticket);
+  }
+  return tickets;
 }
 
 // All tickets across the program, ordered newest-first by purchasedAt.
 // v0.1: full scan is fine on devnet. Replace with an indexer (Helius webhooks
 // → Supabase) once the active-raffle count grows past a few dozen.
 export async function fetchAllTickets(): Promise<Ticket[]> {
-  const response = await rpc
-    .getProgramAccounts(RAFFL_PROGRAM_ADDRESS, {
-      encoding: "base64",
-      filters: [
-        { memcmp: { offset: 0n, bytes: TICKET_DISC_BS58, encoding: "base58" } },
-      ],
-    })
-    .send();
-
-  const tickets = response.map((item) => {
-    const [b64] = item.account.data;
-    const bytes = base64ToBytes(b64);
-    const decoded = decodeTicket({
-      address: item.pubkey,
-      data: bytes,
-      executable: item.account.executable,
-      lamports: item.account.lamports,
-      programAddress: item.account.owner,
-      space: BigInt(bytes.length),
-    });
-    return adaptTicket(item.pubkey, decoded.data);
-  });
-
+  const response = await fetchAllRawProgramAccounts();
+  const tickets: Ticket[] = [];
+  for (const item of response) {
+    const decoded = decodeTicketSafe(item);
+    if (decoded) tickets.push(decoded.ticket);
+  }
   return tickets.sort((a, b) => b.purchasedAt - a.purchasedAt);
 }

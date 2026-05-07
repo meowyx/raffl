@@ -1,7 +1,7 @@
-// View-model types + format/selector helpers for the dashboard.
-// (File kept for now under the legacy "mock-data" name; the static mock arrays
-// have been removed and all data flows from web/lib/program.ts via the hooks
-// in web/lib/hooks.ts. Rename at leisure.)
+// View-model types + format/selector helpers.
+// All raffle / ticket data flows from `lib/program.ts` via the SWR hooks in
+// `lib/hooks.ts`. The view-model shape mirrors the on-chain accounts so the
+// adapter in program.ts is a thin field-rename.
 
 export type RaffleState =
   | "active"
@@ -77,8 +77,8 @@ export function relativeAgo(unixSeconds: number, nowUnix: number): string {
   return `${Math.floor(diff / 3600)}h ${Math.floor((diff % 3600) / 60)}m`;
 }
 
-// Deterministic placeholder color from a pubkey. v0.1 has no on-chain image, so
-// we draw a stable swatch per raffle until R2 + Supabase metadata land.
+// Deterministic placeholder color from a pubkey. v0.1 has no on-chain image,
+// so we draw a stable swatch per raffle until R2 + Supabase metadata land.
 export function colorForPubkey(pk: string): string {
   let hash = 0;
   for (let i = 0; i < pk.length; i++) {

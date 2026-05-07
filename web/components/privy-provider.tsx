@@ -37,8 +37,7 @@ export function RafflPrivyProvider({ children }: { children: React.ReactNode }) 
         },
       }}
     >
-      <PrivyToasts />
-      {children}
+      <PrivyToasts>{children}</PrivyToasts>
     </PrivyProvider>
   );
 }

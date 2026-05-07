@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth/solana";
 import { Check, Copy } from "lucide-react";
 import { BrandMark } from "@/components/landing/wheel";
 import { Stat } from "@/components/dashboard/stat";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { WalletDropdown } from "@/components/wallet-dropdown";
+import { useActiveWallet } from "@/lib/wallet";
 import {
   colorForPubkey,
   countdownFromUnix,
@@ -18,12 +18,12 @@ import {
   selectMyCreated,
   shortAddress,
   type Raffle,
-} from "@/lib/mock-data";
+} from "@/lib/types";
 import { useRaffles, useTicketsForBuyer } from "@/lib/hooks";
 
 export function AccountContent() {
-  const { ready, authenticated } = usePrivy();
-  const { wallets } = useWallets();
+  const { ready, authenticated, login } = usePrivy();
+  const { wallet: active } = useActiveWallet();
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
   const [copied, setCopied] = useState(false);
 
@@ -32,7 +32,6 @@ export function AccountContent() {
     return () => window.clearInterval(id);
   }, []);
 
-  const active = wallets[0];
   const me = active?.address ?? null;
 
   const { data: raffles } = useRaffles();
@@ -109,7 +108,14 @@ export function AccountContent() {
             <p className="muted" style={{ marginBottom: 20 }}>
               Sign in to see raffles you&apos;ve created, tickets you hold, and prizes ready to claim.
             </p>
-            <Link href="/" className="btn btn-primary">Back to home</Link>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+              <button type="button" className="btn btn-primary" onClick={login}>
+                Login
+              </button>
+              <Link href="/" className="btn btn-ghost">
+                Back to home
+              </Link>
+            </div>
           </div>
         </div>
       </div>

@@ -669,6 +669,13 @@ button { font-family: inherit; cursor: pointer; }
     width: 100%;
     justify-content: center;
   }
+  .nav-menu-mobile .btn-primary {
+    color: var(--paper);
+    border-bottom: 0;
+  }
+  .nav-menu-mobile .btn-primary:hover {
+    color: var(--paper);
+  }
 }
 
 @media (max-width: 720px) {
@@ -782,6 +789,38 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--muted);
 }
 .dash-tab[data-state="active"] .count { background: var(--accent); color: var(--ink); }
+
+/* Explore tab is a navigation link, not a state-toggle tab. Style as a tab but
+   without the active-state underline — it always looks like a "go there" link. */
+.dash-tab-link {
+  margin-left: auto;
+  text-decoration: none;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom-color: transparent !important;
+}
+.dash-tab-link .count {
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+  color: var(--accent);
+}
+.dash-tab-link:hover {
+  color: var(--accent);
+}
+.dash-tab-link:hover .count {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.dash-tab-link:hover .dash-tab-arrow {
+  transform: translate(2px, -2px);
+}
+.dash-tab-arrow {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 14px;
+  transition: transform 0.15s ease;
+  color: var(--accent);
+}
 
 .dash-body { padding: 32px var(--gutter) 80px; }
 
@@ -1035,7 +1074,7 @@ button { font-family: inherit; cursor: pointer; }
 .payouts-card .lbl {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: rgba(246, 243, 236, 0.5);
+  opacity: 0.7;
 }
 .payouts-card .num {
   font-size: 32px; font-weight: 800; letter-spacing: -0.025em;
@@ -1044,7 +1083,7 @@ button { font-family: inherit; cursor: pointer; }
 .payouts-card .num em {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-style: normal; font-weight: 500; font-size: 16px;
-  color: rgba(246, 243, 236, 0.5); margin-left: 6px;
+  opacity: 0.7; margin-left: 6px;
 }
 .payouts-card .breakdown {
   display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
@@ -1055,7 +1094,7 @@ button { font-family: inherit; cursor: pointer; }
 .payouts-card .breakdown .b-lbl {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: rgba(246, 243, 236, 0.4);
+  opacity: 0.55;
   margin-bottom: 4px;
 }
 .payouts-card .breakdown .b-val {
@@ -1158,6 +1197,11 @@ button { font-family: inherit; cursor: pointer; }
   .discover-row .raffle-progress,
   .discover-row .raffle-cell,
   .discover-row .raffle-actions { grid-column: 1 / -1; }
+
+  /* Wallet pill: drop the chain label on mobile to save horizontal space */
+  .wallet-pill .balance { display: none; }
+  .wallet-pill .addr { padding-left: 0; border-left: 0; }
+  .wallet-pill { padding: 6px 12px; font-size: 12px; }
 }
 
 @media (max-width: 480px) {
@@ -1258,6 +1302,500 @@ button { font-family: inherit; cursor: pointer; }
   .account-avatar { width: 52px; height: 52px; }
   .account-handle { font-size: 15px; }
   .activity-row { padding: 12px 16px; gap: 10px; }
+}
+
+/* ---------- Explore page ---------- */
+.explore-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.explore-head h1 {
+  margin: 0 0 4px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.explore-head p.muted {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.filter-chip {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--paper);
+  color: var(--ink-3);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.filter-chip:hover {
+  color: var(--ink);
+  border-color: var(--ink-3);
+}
+.filter-chip.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.link-btn {
+  background: none;
+  border: 0;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+.link-btn:hover { color: var(--accent-strong); }
+
+.explore-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.explore-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.12s, transform 0.12s;
+}
+.explore-card:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-2px);
+}
+.explore-card-thumb {
+  height: 140px;
+  width: 100%;
+}
+.explore-card-body {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.explore-card-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.explore-card-countdown {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.explore-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.explore-card-prize {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+.explore-card-prize span {
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: 6px;
+  font-weight: 500;
+}
+.explore-card-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+.explore-card-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.explore-card-stats .lbl {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+.explore-card-stats .val {
+  font-size: 13px;
+  font-weight: 600;
+}
+.explore-card-bar {
+  height: 4px;
+  background: var(--paper-3);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.explore-card-bar .bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+.explore-card-bar .bar-fill.accent {
+  background: var(--accent);
+}
+.explore-card-creator {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+
+@media (max-width: 720px) {
+  .explore-grid { grid-template-columns: 1fr; }
+  .explore-head h1 { font-size: 22px; }
+}
+
+/* ---------- Raffle detail page ---------- */
+.raffle-hero {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 28px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  margin-bottom: 24px;
+}
+.raffle-hero-thumb {
+  width: 140px;
+  height: 140px;
+  border-radius: 16px;
+  flex-shrink: 0;
+}
+.raffle-hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.raffle-hero-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.raffle-hero-countdown {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.raffle-hero-title {
+  margin: 4px 0 0;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.raffle-hero-prize {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 36px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+  margin-top: 6px;
+}
+.raffle-hero-prize span {
+  font-size: 18px;
+  color: var(--muted);
+  margin-left: 6px;
+}
+.raffle-hero-sub {
+  font-size: 13px;
+  color: var(--muted);
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.you-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+  color: var(--accent);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.raffle-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.raffle-stat {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+.raffle-stat .lbl {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  margin-bottom: 6px;
+}
+.raffle-stat .val {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.raffle-progress-bar {
+  margin-bottom: 24px;
+}
+.raffle-progress-bar .bar {
+  height: 6px;
+  background: var(--paper-3);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.raffle-progress-bar .bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+.raffle-progress-bar .bar-fill.accent {
+  background: var(--accent);
+}
+
+.raffle-cta {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.raffle-cta .btn {
+  min-width: 280px;
+  justify-content: center;
+}
+.raffle-cta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+}
+.raffle-cta-info {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  width: 100%;
+  max-width: 480px;
+}
+
+@media (max-width: 720px) {
+  .raffle-hero { flex-direction: column; align-items: flex-start; padding: 22px; gap: 18px; }
+  .raffle-hero-thumb { width: 100%; height: 160px; }
+  .raffle-hero-title { font-size: 24px; }
+  .raffle-hero-prize { font-size: 28px; }
+  .raffle-stats { grid-template-columns: 1fr 1fr; }
+  .raffle-cta .btn { min-width: 0; width: 100%; }
+}
+
+/* ---------- Create raffle form ---------- */
+.create-form {
+  max-width: 620px;
+  margin: 16px auto 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px;
+}
+.create-form-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.create-form-head h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.create-form-head .muted {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.field-label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+.field-hint {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+.field-error {
+  font-size: 12px;
+  color: var(--danger);
+}
+.field input {
+  background: var(--paper-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--ink);
+  transition: border-color 0.12s, background 0.12s;
+}
+.field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--paper);
+}
+.field input::placeholder {
+  color: var(--muted-2);
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.create-form-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+@media (max-width: 720px) {
+  .create-form { padding: 20px; }
+  .create-form-head h1 { font-size: 20px; }
+  .form-grid-2 { grid-template-columns: 1fr; }
+  .create-form-foot { flex-direction: column-reverse; }
+  .create-form-foot .btn { width: 100%; justify-content: center; }
+}
+
+/* ---------- Dashboard auth lock (glass overlay) ---------- */
+.dash-shell-locked .dash-header,
+.dash-shell-locked .dash-body {
+  filter: blur(5px) brightness(0.55) saturate(0.7);
+  pointer-events: none !important;
+  user-select: none;
+  transition: filter 0.25s ease;
+}
+.dash-shell-locked .dash-header *,
+.dash-shell-locked .dash-body * {
+  pointer-events: none !important;
+}
+.dash-lock-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 24px;
+  animation: dashLockFadeIn 0.3s ease-out;
+}
+.dash-lock-card {
+  background: rgba(20, 22, 27, 0.55);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid rgba(246, 243, 236, 0.12);
+  border-radius: 20px;
+  padding: 36px 40px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow:
+    0 24px 72px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(246, 243, 236, 0.08);
+}
+.dash-lock-card h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.dash-lock-card p {
+  margin: 0 0 22px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.dash-lock-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+@keyframes dashLockFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (max-width: 720px) {
+  .dash-lock-card { padding: 28px 24px; }
+  .dash-lock-card h2 { font-size: 19px; }
 }
 
 @theme inline {

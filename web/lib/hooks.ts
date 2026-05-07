@@ -9,11 +9,13 @@ import useSWR, { type SWRConfiguration } from "swr";
 import {
   fetchAllRaffles,
   fetchAllTickets,
+  fetchPlatform,
   fetchRaffle,
   fetchTicketsForBuyer,
   fetchTicketsForRaffle,
+  type Platform,
 } from "./program";
-import type { Raffle, Ticket } from "./mock-data";
+import type { Raffle, Ticket } from "./types";
 
 // Stable key prefixes — also matched by the realtime invalidation logic.
 export const KEY_RAFFLES = "raffles";
@@ -21,6 +23,7 @@ export const KEY_TICKETS = "tickets";
 export const KEY_RAFFLE = "raffle";
 export const KEY_TICKETS_FOR_BUYER = "tickets-for-buyer";
 export const KEY_TICKETS_FOR_RAFFLE = "tickets-for-raffle";
+export const KEY_PLATFORM = "platform";
 
 // Tightened defaults — Solana state moves slowly, no need for the standard
 // SWR aggressive revalidation.
@@ -90,4 +93,9 @@ export function useTicketsForRaffle(
     config,
   );
   return unwrap(result, [] as Ticket[]);
+}
+
+export function usePlatform(): AsyncState<Platform | null> {
+  const result = useSWR<Platform | null>(KEY_PLATFORM, fetchPlatform, config);
+  return unwrap(result, null);
 }

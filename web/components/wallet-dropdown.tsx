@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth/solana";
 import { Check, Copy, LogOut, User } from "lucide-react";
 import {
   DropdownMenu,
@@ -12,11 +11,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { shortAddress } from "@/lib/mock-data";
+import { shortAddress } from "@/lib/types";
+import { useActiveWallet } from "@/lib/wallet";
 
 export function WalletDropdown() {
   const { ready, authenticated, logout } = usePrivy();
-  const { wallets } = useWallets();
+  const { wallet: active } = useActiveWallet();
   const [copied, setCopied] = useState(false);
 
   if (!ready) {
@@ -37,7 +37,6 @@ export function WalletDropdown() {
     );
   }
 
-  const active = wallets[0];
   const address = active?.address;
 
   const onCopy = async () => {

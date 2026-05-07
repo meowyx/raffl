@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth/solana";
 import { Check, Copy, LogOut, ChevronDown, User } from "lucide-react";
+import { useActiveWallet } from "@/lib/wallet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +19,7 @@ function shortAddress(addr: string) {
 
 export function ConnectButton() {
   const { ready, authenticated, login, logout } = usePrivy();
-  const { wallets } = useWallets();
+  const { wallet: active } = useActiveWallet();
   const [copied, setCopied] = useState(false);
 
   if (!ready) {
@@ -38,7 +38,6 @@ export function ConnectButton() {
     );
   }
 
-  const active = wallets[0];
   const address = active?.address;
   const label = address ? shortAddress(address) : "Connected";
 

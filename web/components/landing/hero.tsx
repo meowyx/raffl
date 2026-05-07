@@ -35,7 +35,7 @@ export function Hero() {
                 />
               </svg>
             </Link>
-            <Link href="/dashboard?tab=buyer" className="btn btn-ghost btn-lg">
+            <Link href="/explore" className="btn btn-ghost btn-lg">
               Browse raffles
             </Link>
           </div>

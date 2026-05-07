@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Stat } from "./stat";
 import { StatusBadge } from "./status-badge";
 import {
@@ -15,7 +16,7 @@ import {
   shortAddress,
   type Raffle,
   type Ticket,
-} from "@/lib/mock-data";
+} from "@/lib/types";
 
 type Props = {
   now: number;
@@ -41,9 +42,9 @@ export function CreatorView({ now, raffles, recentTickets, me }: Props) {
           <h4>Run another raffle.</h4>
           <p>Drop a prize. Pick a price. The chain handles the draw.</p>
         </div>
-        <button type="button" className="btn btn-accent btn-lg" disabled>
+        <Link href="/dashboard/create" className="btn btn-accent btn-lg">
           + Create raffle
-        </button>
+        </Link>
       </div>
 
       <div className="dash-main">
@@ -111,7 +112,13 @@ function CreatorRaffleList({ list, now }: { list: Raffle[]; now: number }) {
         </span>
       </div>
       {list.length === 0 ? (
-        <div className="empty">No active raffles. Hit + Create raffle to launch one.</div>
+        <div className="empty">
+          No active raffles yet.{" "}
+          <Link href="/dashboard/create" className="link-btn">Create one</Link>
+          {" "}or{" "}
+          <Link href="/explore" className="link-btn">browse what others have</Link>
+          .
+        </div>
       ) : (
         <div className="raffle-list">
           {list.map((r) => (
@@ -193,16 +200,19 @@ function CreatorRaffleRow({ raffle: r, now }: { raffle: Raffle; now: number }) {
 }
 
 function PayoutsCard({ settled, me }: { settled: Raffle[]; me: string | null }) {
-  const owned = me
-    ? settled.filter((r) => r.winner === me || r.creator === me)
-    : [];
-  const total = owned.reduce((acc, r) => acc + revenueSol(r) * 0.95, 0);
+  const myRaffles = me ? settled.filter((r) => r.creator === me) : [];
+  const claimed = myRaffles.filter((r) => r.state === "claimed");
+  const pendingClaim = myRaffles.filter((r) => r.state === "settled");
+  const receivedSol = claimed.reduce((acc, r) => acc + revenueSol(r) * 0.95, 0);
+  const pendingSol = pendingClaim.reduce((acc, r) => acc + revenueSol(r) * 0.95, 0);
+  const totalSol = receivedSol + pendingSol;
+
   return (
     <div className="payouts-card">
       <div>
-        <div className="lbl">Payouts ready to claim</div>
+        <div className="lbl">Payout receipts</div>
         <div className="num" style={{ marginTop: 4 }}>
-          {total.toFixed(2)}
+          {totalSol.toFixed(2)}
           <em>SOL</em>
         </div>
       </div>
@@ -211,19 +221,25 @@ function PayoutsCard({ settled, me }: { settled: Raffle[]; me: string | null }) 
         className="btn btn-accent"
         style={{ width: "100%", justifyContent: "center" }}
         disabled
+        title="Earnings settle automatically when the winner claims their prize"
       >
-        Claim {total.toFixed(2)} SOL
+        {totalSol === 0
+          ? "No payouts yet"
+          : pendingSol > 0
+            ? `${pendingSol.toFixed(2)} SOL pending winner claim`
+            : `${receivedSol.toFixed(2)} SOL auto-paid`}
       </button>
+      <p style={{ margin: 0, fontSize: 12, opacity: 0.7, textAlign: "center" }}>
+        Your 95% of ticket revenue lands in your wallet automatically when the winner claims.
+      </p>
       <div className="breakdown">
         <div>
-          <div className="b-lbl">From</div>
-          <div className="b-val">
-            {owned.length} raffle{owned.length === 1 ? "" : "s"}
-          </div>
+          <div className="b-lbl">Received</div>
+          <div className="b-val">{receivedSol.toFixed(2)} SOL</div>
         </div>
         <div>
-          <div className="b-lbl">Net of fees</div>
-          <div className="b-val">−{(total * 0.05).toFixed(2)} SOL</div>
+          <div className="b-lbl">Pending</div>
+          <div className="b-val">{pendingSol.toFixed(2)} SOL</div>
         </div>
       </div>
     </div>
@@ -282,7 +298,9 @@ function SettledHistory({ list }: { list: Raffle[] }) {
     <div className="panel">
       <div className="panel-head">
         <h3>Settled raffles</h3>
-        <span className="meta meta-link">View all →</span>
+        <Link href="/explore" className="meta meta-link">
+          View all →
+        </Link>
       </div>
       {list.length === 0 ? (
         <div className="empty">No settled raffles yet.</div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Stat } from "./stat";
 import { StatusBadge } from "./status-badge";
 import {
@@ -13,7 +14,7 @@ import {
   type MyTicketGroup,
   type Raffle,
   type Ticket,
-} from "@/lib/mock-data";
+} from "@/lib/types";
 
 type Props = {
   now: number;
@@ -102,7 +103,11 @@ function MyTickets({ groups, now }: { groups: MyTicketGroup[]; now: number }) {
         </span>
       </div>
       {groups.length === 0 ? (
-        <div className="empty">No active tickets. Browse open raffles below.</div>
+        <div className="empty">
+          No active tickets yet.{" "}
+          <Link href="/explore" className="link-btn">Browse all raffles</Link>
+          {" "}to find one you like.
+        </div>
       ) : (
         <div className="ticket-grid">
           {groups.map((g) => (
@@ -146,13 +151,13 @@ function MyTicketCard({ group, now }: { group: MyTicketGroup; now: number }) {
           </span>
         </div>
       </div>
-      <button
-        type="button"
+      <Link
+        href={`/raffle/${group.raffle.pubkey}`}
         className="btn btn-ghost btn-sm"
         style={{ width: "100%", justifyContent: "center" }}
       >
         View raffle ↗
-      </button>
+      </Link>
     </div>
   );
 }
@@ -168,8 +173,16 @@ function WinsCard({ wonRaffles }: { wonRaffles: Raffle[] }) {
             0<em>prizes</em>
           </div>
         </div>
-        <p style={{ margin: 0, fontSize: 13, color: "rgba(246,243,236,0.5)" }}>
-          When the VRF picks your ticket, the receipt shows up here with a claim button.
+        <button
+          type="button"
+          className="btn btn-accent"
+          style={{ width: "100%", justifyContent: "center" }}
+          disabled
+        >
+          No prizes to claim
+        </button>
+        <p style={{ margin: 0, fontSize: 12, opacity: 0.7, textAlign: "center" }}>
+          When you win, the prize shows up here with a claim button.
         </p>
       </div>
     );
@@ -186,8 +199,8 @@ function WinsCard({ wonRaffles }: { wonRaffles: Raffle[] }) {
       </div>
       <div
         style={{
-          background: "rgba(246,243,236,0.05)",
-          border: "1px solid rgba(246,243,236,0.1)",
+          background: "color-mix(in oklab, var(--paper) 8%, transparent)",
+          border: "1px solid color-mix(in oklab, var(--paper) 14%, transparent)",
           borderRadius: 12,
           padding: 14,
         }}
@@ -196,7 +209,7 @@ function WinsCard({ wonRaffles }: { wonRaffles: Raffle[] }) {
         <div
           style={{
             fontSize: 12,
-            color: "rgba(246,243,236,0.5)",
+            opacity: 0.6,
             fontFamily: "var(--font-jetbrains-mono), ui-monospace, monospace",
             marginTop: 6,
           }}
@@ -204,14 +217,13 @@ function WinsCard({ wonRaffles }: { wonRaffles: Raffle[] }) {
           {formatSol(first.prizeAmount)} SOL · ticket #{first.winningTicket ?? "?"}
         </div>
       </div>
-      <button
-        type="button"
+      <Link
+        href={`/raffle/${first.pubkey}`}
         className="btn btn-accent"
         style={{ width: "100%", justifyContent: "center" }}
-        disabled
       >
         Claim prize
-      </button>
+      </Link>
     </div>
   );
 }
@@ -222,7 +234,9 @@ function DiscoverPanel({ raffles }: { raffles: Raffle[] }) {
     <div className="panel">
       <div className="panel-head">
         <h3>Closing soon</h3>
-        <span className="meta meta-link">Browse all →</span>
+        <Link href="/explore" className="meta meta-link">
+          Browse all →
+        </Link>
       </div>
       {top.length === 0 ? (
         <div className="empty">No active raffles right now.</div>
@@ -256,9 +270,9 @@ function DiscoverPanel({ raffles }: { raffles: Raffle[] }) {
                   <span className="val">{formatSol(r.ticketPrice, 3)} SOL</span>
                 </div>
                 <div className="raffle-actions">
-                  <button type="button" className="btn btn-primary btn-sm" disabled>
+                  <Link href={`/raffle/${r.pubkey}`} className="btn btn-primary btn-sm">
                     Buy
-                  </button>
+                  </Link>
                 </div>
               </div>
             );

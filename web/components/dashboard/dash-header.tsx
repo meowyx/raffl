@@ -10,10 +10,10 @@ export type DashTab = "creator" | "buyer" | "analytics" | "history";
 type DashHeaderProps = {
   creatorCount: number;
   buyerCount: number;
-  onCreate?: () => void;
+  exploreCount: number;
 };
 
-export function DashHeader({ creatorCount, buyerCount, onCreate }: DashHeaderProps) {
+export function DashHeader({ creatorCount, buyerCount, exploreCount }: DashHeaderProps) {
   return (
     <div className="dash-header">
       <div className="dash-header-row">
@@ -22,25 +22,20 @@ export function DashHeader({ creatorCount, buyerCount, onCreate }: DashHeaderPro
           <span className="dash-eyebrow">/ dashboard</span>
         </Link>
         <div className="dash-header-actions">
-          <button
-            type="button"
-            className="btn btn-accent"
-            onClick={onCreate}
-            disabled={!onCreate}
-          >
+          <Link href="/dashboard/create" className="btn btn-accent">
             + Create raffle
-          </button>
+          </Link>
           <WalletDropdown />
         </div>
       </div>
       <TabsPrimitive.List className="dash-tabs">
-        <TabsPrimitive.Trigger value="creator" className="dash-tab">
-          Creator
-          <span className="count">{creatorCount}</span>
-        </TabsPrimitive.Trigger>
         <TabsPrimitive.Trigger value="buyer" className="dash-tab">
           Buyer
           <span className="count">{buyerCount}</span>
+        </TabsPrimitive.Trigger>
+        <TabsPrimitive.Trigger value="creator" className="dash-tab">
+          Creator
+          <span className="count">{creatorCount}</span>
         </TabsPrimitive.Trigger>
         <TabsPrimitive.Trigger value="analytics" className="dash-tab">
           Analytics
@@ -48,6 +43,13 @@ export function DashHeader({ creatorCount, buyerCount, onCreate }: DashHeaderPro
         <TabsPrimitive.Trigger value="history" className="dash-tab">
           History
         </TabsPrimitive.Trigger>
+        <Link href="/explore" className="dash-tab dash-tab-link">
+          Explore
+          {exploreCount > 0 && (
+            <span className="count">{exploreCount > 999 ? "999+" : exploreCount}</span>
+          )}
+          <span className="dash-tab-arrow" aria-hidden>↗</span>
+        </Link>
       </TabsPrimitive.List>
     </div>
   );

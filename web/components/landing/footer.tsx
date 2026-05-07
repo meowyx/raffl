@@ -16,7 +16,7 @@ export function Footer() {
           <h4>Product</h4>
           <ul>
             <li>
-              <Link href="/dashboard?tab=buyer">Browse raffles</Link>
+              <Link href="/explore">Browse raffles</Link>
             </li>
             <li>
               <Link href="/dashboard?tab=creator">Create raffle</Link>

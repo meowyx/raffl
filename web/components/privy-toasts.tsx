@@ -1,9 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useLogin, useLogout } from "@privy-io/react-auth";
 import { toast } from "sonner";
 
-export function PrivyToasts() {
+export function PrivyToasts({ children }: { children: ReactNode }) {
   useLogin({
     onComplete: ({ isNewUser, wasAlreadyAuthenticated }) => {
       if (wasAlreadyAuthenticated) return;
@@ -20,5 +21,5 @@ export function PrivyToasts() {
     },
   });
 
-  return null;
+  return <>{children}</>;
 }
