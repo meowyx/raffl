@@ -11,7 +11,7 @@
   <a href="https://github.com/litesvm/litesvm"><img src="https://img.shields.io/badge/tests-36%20passing-success?style=flat" alt="Tests"/></a>
   <a href="https://docs.switchboard.xyz/product-documentation/randomness"><img src="https://img.shields.io/badge/VRF-Switchboard-00D4AA?style=flat" alt="Switchboard VRF"/></a>
   <a href="https://www.helius.dev/"><img src="https://img.shields.io/badge/RPC-Helius-FF4D00?style=flat" alt="Helius"/></a>
-  <a href="https://www.privy.io/"><img src="https://img.shields.io/badge/Auth-Privy%20(soon)-7B61FF?style=flat" alt="Privy"/></a>
+  <a href="https://www.privy.io/"><img src="https://img.shields.io/badge/Auth-Privy-7B61FF?style=flat" alt="Privy"/></a>
   <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-16-000000?style=flat&logo=nextdotjs&logoColor=white" alt="Next.js"/></a>
   <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind-CSS-38BDF8?style=flat&logo=tailwindcss&logoColor=white" alt="Tailwind CSS"/></a>
   <a href="https://raffl.fun"><img src="https://img.shields.io/badge/raffl.fun-live-FF4F00?style=flat" alt="raffl.fun"/></a>
@@ -66,8 +66,8 @@ Every step is on-chain and publicly verifiable. No off-chain randomness, no cust
 | Styling | **Tailwind CSS** | Design system from `design/` (gitignored sketch repo): landing, dashboard, wheel-draw component |
 | Bundler | **Turbopack** | Default in Next.js 16; fast dev rebuilds |
 | Package manager | **pnpm** | Workspace-friendly, content-addressed store |
-| Wallet / auth | **Privy** (Day 5 — coming) | Embedded wallets via email / Google for non-crypto users; external wallets (Phantom, Solflare, Backpack) supported |
-| Solana SDK | `@coral-xyz/anchor` + `@solana/web3.js` | Auto-generated types from Anchor IDL (published on-chain at deploy) |
+| Wallet / auth | **Privy** | Embedded wallets via email / Google / Twitter for non-crypto users; external Solana wallets (Phantom, Solflare) via `toSolanaWalletConnectors`; embedded wallet auto-mints for users without one |
+| Solana SDK | `@solana/kit` end-to-end (Privy provider, RPC, instruction building, account decoding) | Typed raffl client generated from the on-chain IDL via Codama, same pattern as `@solana-program/system\|token\|memo` |
 | Hosting | **Vercel** | Plug-and-play Next.js deploys; preview branches per PR |
 
 ## Project layout

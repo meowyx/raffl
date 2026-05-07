@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BigWheel } from "./wheel";
 
 export function Hero() {
@@ -22,7 +23,7 @@ export function Hero() {
           </p>
 
           <div className="hero-ctas">
-            <button className="btn btn-accent btn-lg">
+            <Link href="/dashboard?tab=creator" className="btn btn-accent btn-lg">
               Start a raffle
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path
@@ -33,18 +34,20 @@ export function Hero() {
                   strokeLinejoin="round"
                 />
               </svg>
-            </button>
-            <button className="btn btn-ghost btn-lg">Browse raffles</button>
+            </Link>
+            <Link href="/dashboard?tab=buyer" className="btn btn-ghost btn-lg">
+              Browse raffles
+            </Link>
           </div>
 
           <div className="hero-stats">
             <div className="hero-stat">
-              <span className="num">412</span>
-              <span className="lbl">Raffles run</span>
+              <span className="num">Devnet</span>
+              <span className="lbl">Live now</span>
             </div>
             <div className="hero-stat">
-              <span className="num">2,840 SOL</span>
-              <span className="lbl">Paid out</span>
+              <span className="num">VRF</span>
+              <span className="lbl">Random source</span>
             </div>
             <div className="hero-stat">
               <span className="num">5%</span>

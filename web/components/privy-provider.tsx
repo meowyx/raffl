@@ -2,14 +2,10 @@
 
 import { PrivyProvider } from "@privy-io/react-auth";
 import { toSolanaWalletConnectors } from "@privy-io/react-auth/solana";
-import { createSolanaRpc, createSolanaRpcSubscriptions } from "@solana/kit";
+import { rpc, rpcSubscriptions } from "@/lib/rpc";
+import { PrivyToasts } from "@/components/privy-toasts";
 
 const solanaConnectors = toSolanaWalletConnectors();
-
-const rpc = createSolanaRpc("/api/rpc");
-const rpcSubscriptions = createSolanaRpcSubscriptions(
-  process.env.NEXT_PUBLIC_SOLANA_WS_URL ?? "wss://api.devnet.solana.com",
-);
 
 export function RafflPrivyProvider({ children }: { children: React.ReactNode }) {
   const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
@@ -41,6 +37,7 @@ export function RafflPrivyProvider({ children }: { children: React.ReactNode }) 
         },
       }}
     >
+      <PrivyToasts />
       {children}
     </PrivyProvider>
   );

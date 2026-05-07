@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth/solana";
-import { Check, Copy, LogOut, ChevronDown, User } from "lucide-react";
+import { Check, Copy, LogOut, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,35 +12,33 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { shortAddress } from "@/lib/mock-data";
 
-function shortAddress(addr: string) {
-  return `${addr.slice(0, 4)}…${addr.slice(-4)}`;
-}
-
-export function ConnectButton() {
-  const { ready, authenticated, login, logout } = usePrivy();
+export function WalletDropdown() {
+  const { ready, authenticated, logout } = usePrivy();
   const { wallets } = useWallets();
   const [copied, setCopied] = useState(false);
 
   if (!ready) {
     return (
-      <button className="btn btn-ghost" disabled>
-        Loading…
-      </button>
+      <div className="wallet-pill">
+        <span className="wallet-avatar" aria-hidden />
+        <span className="addr">…</span>
+      </div>
     );
   }
 
   if (!authenticated) {
     return (
-      <button className="btn btn-ghost" onClick={login}>
-        Login
-      </button>
+      <div className="wallet-pill">
+        <span className="wallet-avatar" aria-hidden />
+        <span className="addr">not connected</span>
+      </div>
     );
   }
 
   const active = wallets[0];
   const address = active?.address;
-  const label = address ? shortAddress(address) : "Connected";
 
   const onCopy = async () => {
     if (!address) return;
@@ -52,9 +50,10 @@ export function ConnectButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="btn btn-ghost inline-flex items-center gap-1.5">
-          {label}
-          <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+        <button type="button" className="wallet-pill" aria-label="Wallet menu">
+          <span className="wallet-avatar" aria-hidden />
+          <span className="balance">solana · devnet</span>
+          <span className="addr">{address ? shortAddress(address) : "no wallet"}</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

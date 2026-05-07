@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function CreatorSection() {
   return (
     <section className="section">
@@ -21,10 +23,16 @@ export function CreatorSection() {
               </p>
 
               <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-                <button className="btn btn-accent btn-lg">
+                <Link
+                  href="/dashboard?tab=creator"
+                  className="btn btn-accent btn-lg"
+                >
                   Create your first raffle
-                </button>
-                <button
+                </Link>
+                <a
+                  href="https://github.com/meowyx/raffl/tree/main/docs"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="btn btn-ghost btn-lg"
                   style={{
                     color: "#f6f3ec",
@@ -32,7 +40,7 @@ export function CreatorSection() {
                   }}
                 >
                   Read the docs
-                </button>
+                </a>
               </div>
             </div>
 

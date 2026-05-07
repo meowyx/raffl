@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BrandMark } from "./wheel";
 
 export function Footer() {
@@ -15,16 +16,13 @@ export function Footer() {
           <h4>Product</h4>
           <ul>
             <li>
-              <a href="#">Explore raffles</a>
+              <Link href="/dashboard?tab=buyer">Browse raffles</Link>
             </li>
             <li>
-              <a href="#">Create raffle</a>
+              <Link href="/dashboard?tab=creator">Create raffle</Link>
             </li>
             <li>
-              <a href="#">Dashboard</a>
-            </li>
-            <li>
-              <a href="#">Featured</a>
+              <Link href="/dashboard">Dashboard</Link>
             </li>
           </ul>
         </div>
@@ -32,16 +30,40 @@ export function Footer() {
           <h4>Build</h4>
           <ul>
             <li>
-              <a href="#">Anchor program</a>
+              <a
+                href="https://explorer.solana.com/address/Finb5eCnqTNm33ssqS2ofEnuoHzCmXaWfuXEn4HcaGRA?cluster=devnet"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Anchor program
+              </a>
             </li>
             <li>
-              <a href="#">IDL</a>
+              <a
+                href="https://github.com/meowyx/raffl/tree/main/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Docs
+              </a>
             </li>
             <li>
-              <a href="#">Switchboard VRF</a>
+              <a
+                href="https://docs.switchboard.xyz/product-documentation/randomness"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Switchboard VRF
+              </a>
             </li>
             <li>
-              <a href="#">Audit report</a>
+              <a
+                href="https://github.com/meowyx/raffl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub
+              </a>
             </li>
           </ul>
         </div>

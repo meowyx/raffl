@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import { RafflPrivyProvider } from "@/components/privy-provider";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -44,6 +45,7 @@ export default function RootLayout({
     >
       <body>
         <RafflPrivyProvider>{children}</RafflPrivyProvider>
+        <Toaster theme="dark" position="bottom-right" />
       </body>
     </html>
   );
