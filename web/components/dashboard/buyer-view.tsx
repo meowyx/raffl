@@ -15,6 +15,7 @@ import {
   type Raffle,
   type Ticket,
 } from "@/lib/types";
+import { explorerAccountUrl } from "@/lib/explorer";
 
 type Props = {
   now: number;
@@ -140,6 +141,17 @@ function MyTicketCard({ group, now }: { group: MyTicketGroup; now: number }) {
             {countdownFromUnix(group.raffle.endTime, now)}
           </span>
         )}
+        <a
+          href={explorerAccountUrl(group.raffle.pubkey)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="explorer-link"
+          title="View raffle on Solana Explorer"
+          aria-label="View raffle on Solana Explorer"
+          style={{ marginLeft: "auto" }}
+        >
+          ↗
+        </a>
       </div>
       <div className="tc-name">{group.raffle.prizeDescription}</div>
       <div className="tc-stats">
@@ -277,6 +289,16 @@ function DiscoverPanel({ raffles, now }: { raffles: Raffle[]; now: number }) {
                   <span className="val">{formatSol(r.ticketPrice, 3)} SOL</span>
                 </div>
                 <div className="raffle-actions">
+                  <a
+                    href={explorerAccountUrl(r.pubkey)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="explorer-link"
+                    title="View raffle on Solana Explorer"
+                    aria-label="View raffle on Solana Explorer"
+                  >
+                    ↗
+                  </a>
                   <Link href={`/raffle/${r.pubkey}`} className="btn btn-primary btn-sm">
                     Buy
                   </Link>

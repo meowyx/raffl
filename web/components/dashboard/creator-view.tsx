@@ -18,6 +18,7 @@ import {
   type Raffle,
   type Ticket,
 } from "@/lib/types";
+import { explorerAccountUrl } from "@/lib/explorer";
 
 type Props = {
   now: number;
@@ -161,9 +162,16 @@ function CreatorRaffleRow({ raffle: r, now }: { raffle: Raffle; now: number }) {
             </button>
           ) : (
             <>
-              <button type="button" className="icon-btn" title="View">
+              <a
+                href={explorerAccountUrl(r.pubkey)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="explorer-link"
+                title="View raffle on Solana Explorer"
+                aria-label="View raffle on Solana Explorer"
+              >
                 ↗
-              </button>
+              </a>
               <button
                 type="button"
                 className="icon-btn"
@@ -308,6 +316,16 @@ function BuyerFeed({
                 </div>
                 <span className="qty">×1</span>
                 <span className="ago">{relativeAgo(t.purchasedAt, now)}</span>
+                <a
+                  href={explorerAccountUrl(t.pubkey)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="explorer-link"
+                  title="View ticket on Solana Explorer"
+                  aria-label="View ticket on Solana Explorer"
+                >
+                  ↗
+                </a>
               </div>
             );
           })}
@@ -340,6 +358,7 @@ function SettledHistory({ list }: { list: Raffle[] }) {
                 <th>Winner</th>
                 <th>VRF</th>
                 <th>Status</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -367,6 +386,18 @@ function SettledHistory({ list }: { list: Raffle[] }) {
                   </td>
                   <td>
                     <StatusBadge state={r.state} />
+                  </td>
+                  <td>
+                    <a
+                      href={explorerAccountUrl(r.pubkey)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="explorer-link"
+                      title="View raffle on Solana Explorer"
+                      aria-label="View raffle on Solana Explorer"
+                    >
+                      ↗
+                    </a>
                   </td>
                 </tr>
               ))}

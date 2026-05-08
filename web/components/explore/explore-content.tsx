@@ -15,6 +15,7 @@ import {
   shortAddress,
   type Raffle,
 } from "@/lib/types";
+import { explorerAccountUrl } from "@/lib/explorer";
 
 type FilterKey = "active" | "closing-soon" | "expired" | "settled" | "all";
 
@@ -139,13 +140,14 @@ function ExploreCard({ raffle: r, now }: { raffle: Raffle; now: number }) {
   const progress = pct(r.ticketsSold, r.maxTickets);
   const status = displayStatus(r, now);
   return (
-    <Link href={`/raffle/${r.pubkey}`} className="explore-card">
-      <div
-        className="explore-card-thumb"
-        style={{ background: colorForPubkey(r.pubkey) }}
-        aria-hidden
-      />
-      <div className="explore-card-body">
+    <div className="explore-card-wrap">
+      <Link href={`/raffle/${r.pubkey}`} className="explore-card">
+        <div
+          className="explore-card-thumb"
+          style={{ background: colorForPubkey(r.pubkey) }}
+          aria-hidden
+        />
+        <div className="explore-card-body">
         <div className="explore-card-state">
           <StatusBadge state={status} />
           {status === "active" && (
@@ -175,7 +177,18 @@ function ExploreCard({ raffle: r, now }: { raffle: Raffle; now: number }) {
         </div>
         <div className="explore-card-creator">by {shortAddress(r.creator)}</div>
       </div>
-    </Link>
+      </Link>
+      <a
+        href={explorerAccountUrl(r.pubkey)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="explorer-link explore-card-explorer"
+        title="View raffle on Solana Explorer"
+        aria-label="View raffle on Solana Explorer"
+      >
+        ↗
+      </a>
+    </div>
   );
 }
 

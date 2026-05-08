@@ -1383,8 +1383,13 @@ button { font-family: inherit; cursor: pointer; }
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
 }
+.explore-card-wrap {
+  position: relative;
+  display: flex;
+}
 .explore-card {
   display: flex;
+  flex: 1;
   flex-direction: column;
   background: var(--paper);
   border: 1px solid var(--line);
@@ -1393,6 +1398,14 @@ button { font-family: inherit; cursor: pointer; }
   text-decoration: none;
   color: inherit;
   transition: border-color 0.12s, transform 0.12s;
+}
+.explore-card-explorer {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: color-mix(in oklab, var(--paper) 85%, transparent);
+  backdrop-filter: blur(4px);
+  z-index: 1;
 }
 .explore-card:hover {
   border-color: var(--line-strong);
@@ -1565,6 +1578,26 @@ button { font-family: inherit; cursor: pointer; }
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.explorer-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+  flex-shrink: 0;
+}
+.explorer-link:hover {
+  color: var(--accent);
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--line));
+  background: color-mix(in oklab, var(--accent) 8%, transparent);
 }
 
 .raffle-stats {

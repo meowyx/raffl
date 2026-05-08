@@ -20,6 +20,7 @@ import {
   shortAddress,
   type Raffle,
 } from "@/lib/types";
+import { explorerAccountUrl } from "@/lib/explorer";
 import { useRaffles, useTicketsForBuyer } from "@/lib/hooks";
 
 export function AccountContent() {
@@ -68,13 +69,26 @@ export function AccountContent() {
 
   const recentActivity = useMemo(() => {
     if (!me) return [];
-    const events: { kind: string; at: number; raffle: Raffle; meta?: string }[] = [];
+    const events: {
+      kind: string;
+      at: number;
+      raffle: Raffle;
+      meta?: string;
+      linkPubkey: string;
+    }[] = [];
     for (const t of myTickets.filter((t) => t.buyer === me)) {
       const r = raffles.find((x) => x.pubkey === t.raffle);
-      if (r) events.push({ kind: "ticket", at: t.purchasedAt, raffle: r, meta: `#${t.ticketNumber}` });
+      if (r)
+        events.push({
+          kind: "ticket",
+          at: t.purchasedAt,
+          raffle: r,
+          meta: `#${t.ticketNumber}`,
+          linkPubkey: t.pubkey,
+        });
     }
     for (const r of created) {
-      events.push({ kind: "create", at: r.createdAt, raffle: r });
+      events.push({ kind: "create", at: r.createdAt, raffle: r, linkPubkey: r.pubkey });
     }
     return events.sort((a, b) => b.at - a.at).slice(0, 6);
   }, [created, raffles, myTickets, me]);
@@ -197,6 +211,16 @@ export function AccountContent() {
                     </div>
                     <div className="raffle-actions">
                       <StatusBadge state={r.state} />
+                      <a
+                        href={explorerAccountUrl(r.pubkey)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="explorer-link"
+                        title="View raffle on Solana Explorer"
+                        aria-label="View raffle on Solana Explorer"
+                      >
+                        ↗
+                      </a>
                       <button type="button" className="btn btn-primary btn-sm" disabled title="Claim wiring lands with the buy/settle flow">
                         Claim
                       </button>
@@ -236,6 +260,16 @@ export function AccountContent() {
                     </div>
                   </div>
                   <StatusBadge state={displayStatus(e.raffle, now)} />
+                  <a
+                    href={explorerAccountUrl(e.linkPubkey)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="explorer-link"
+                    title={`View ${e.kind === "ticket" ? "ticket" : "raffle"} on Solana Explorer`}
+                    aria-label={`View ${e.kind === "ticket" ? "ticket" : "raffle"} on Solana Explorer`}
+                  >
+                    ↗
+                  </a>
                 </div>
               ))}
             </div>
@@ -274,6 +308,16 @@ export function AccountContent() {
                       </div>
                       <div className="raffle-actions">
                         <StatusBadge state={status} />
+                        <a
+                          href={explorerAccountUrl(g.raffle.pubkey)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="explorer-link"
+                          title="View raffle on Solana Explorer"
+                          aria-label="View raffle on Solana Explorer"
+                        >
+                          ↗
+                        </a>
                       </div>
                     </div>
                   </div>
