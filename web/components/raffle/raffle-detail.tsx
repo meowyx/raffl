@@ -42,6 +42,7 @@ import {
   shortAddress,
   type Ticket,
 } from "@/lib/types";
+import { explorerAccountUrl } from "@/lib/explorer";
 import { useSendTransaction } from "@/lib/tx";
 import { useSettleRaffle } from "@/lib/switchboard";
 import { useActiveWallet } from "@/lib/wallet";
@@ -279,6 +280,16 @@ export function RaffleDetail({ rafflePubkey }: { rafflePubkey: string }) {
               {isActive && ended && (
                 <span className="raffle-hero-countdown">ended {relativeAgo(raffle.endTime, now)} ago</span>
               )}
+              <a
+                href={explorerAccountUrl(raffle.pubkey)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="explorer-link"
+                title="View raffle on Solana Explorer"
+                aria-label="View raffle on Solana Explorer"
+              >
+                ↗
+              </a>
             </div>
             <h1 className="raffle-hero-title">{raffle.prizeDescription}</h1>
             <div className="raffle-hero-prize">
@@ -375,6 +386,16 @@ export function RaffleDetail({ rafflePubkey }: { rafflePubkey: string }) {
                       ticket #{t.ticketNumber} · {relativeAgo(t.purchasedAt, now)} ago
                     </div>
                   </div>
+                  <a
+                    href={explorerAccountUrl(t.pubkey)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="explorer-link"
+                    title="View ticket on Solana Explorer"
+                    aria-label="View ticket on Solana Explorer"
+                  >
+                    ↗
+                  </a>
                 </div>
               ))}
             </div>

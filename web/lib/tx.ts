@@ -18,6 +18,7 @@ import { mutate } from "swr";
 import { toast } from "sonner";
 import { rpc } from "./rpc";
 import { useActiveWallet } from "./wallet";
+import { explorerTxUrl } from "./explorer";
 
 type SendOptions = {
   invalidate?: string[];
@@ -76,7 +77,13 @@ export function useSendTransaction() {
         toast.loading(`${label}: confirming…`, { id: toastId });
         await waitForConfirmation(signature, options?.confirmTimeoutMs ?? 30_000);
 
-        toast.success(`${label}: confirmed`, { id: toastId });
+        toast.success(`${label}: confirmed`, {
+          id: toastId,
+          action: {
+            label: "View ↗",
+            onClick: () => window.open(explorerTxUrl(signature), "_blank", "noopener,noreferrer"),
+          },
+        });
 
         if (options?.invalidate?.length) {
           await Promise.all(options.invalidate.map((key) => mutate(key)));
