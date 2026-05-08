@@ -7,6 +7,7 @@ import {
   capSol,
   colorForPubkey,
   countdownFromUnix,
+  displayStatus,
   formatSol,
   pct,
   relativeAgo,
@@ -132,6 +133,7 @@ function CreatorRaffleList({ list, now }: { list: Raffle[]; now: number }) {
 
 function CreatorRaffleRow({ raffle: r, now }: { raffle: Raffle; now: number }) {
   const progress = pct(r.ticketsSold, r.maxTickets);
+  const status = displayStatus(r, now);
   return (
     <div className="raffle-row">
       <div className="raffle-thumb placeholder-stripe" />
@@ -139,8 +141,14 @@ function CreatorRaffleRow({ raffle: r, now }: { raffle: Raffle; now: number }) {
         <div className="raffle-name">
           <div className="title">{r.prizeDescription}</div>
           <div className="sub">
-            {r.state === "drawing" ? (
+            {status === "drawing" ? (
               <StatusBadge state="drawing">drawing · VRF pending</StatusBadge>
+            ) : status === "expired" ? (
+              <StatusBadge state="expired">
+                {r.ticketsSold < r.minTickets
+                  ? "expired · under-subscribed"
+                  : "expired · awaiting draw"}
+              </StatusBadge>
             ) : (
               `Ends in ${countdownFromUnix(r.endTime, now)}`
             )}

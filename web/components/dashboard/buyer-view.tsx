@@ -6,10 +6,10 @@ import { StatusBadge } from "./status-badge";
 import {
   colorForPubkey,
   countdownFromUnix,
+  displayStatus,
   formatSol,
   groupMyTicketsByRaffle,
   pct,
-  selectActive,
   shortAddress,
   type MyTicketGroup,
   type Raffle,
@@ -36,7 +36,7 @@ export function BuyerView({ now, raffles, myTickets, me }: Props) {
         <WinsCard wonRaffles={wonRaffles} />
       </div>
       <div className="dash-main">
-        <DiscoverPanel raffles={raffles} />
+        <DiscoverPanel raffles={raffles} now={now} />
         <BuyerHistory groups={groups} me={me} />
       </div>
     </>
@@ -124,19 +124,22 @@ function MyTicketCard({ group, now }: { group: MyTicketGroup; now: number }) {
     group.raffle.ticketsSold > 0
       ? Math.round(group.raffle.ticketsSold / group.count)
       : 0;
+  const status = displayStatus(group.raffle, now);
   return (
     <div className="ticket-card">
       <div className="tc-top">
-        <StatusBadge state={group.raffle.state} />
-        <span
-          style={{
-            fontFamily: "var(--font-jetbrains-mono), ui-monospace, monospace",
-            fontSize: 11,
-            color: "var(--muted)",
-          }}
-        >
-          {countdownFromUnix(group.raffle.endTime, now)}
-        </span>
+        <StatusBadge state={status} />
+        {status === "active" && (
+          <span
+            style={{
+              fontFamily: "var(--font-jetbrains-mono), ui-monospace, monospace",
+              fontSize: 11,
+              color: "var(--muted)",
+            }}
+          >
+            {countdownFromUnix(group.raffle.endTime, now)}
+          </span>
+        )}
       </div>
       <div className="tc-name">{group.raffle.prizeDescription}</div>
       <div className="tc-stats">
@@ -228,8 +231,12 @@ function WinsCard({ wonRaffles }: { wonRaffles: Raffle[] }) {
   );
 }
 
-function DiscoverPanel({ raffles }: { raffles: Raffle[] }) {
-  const top = selectActive(raffles).slice(0, 4);
+function DiscoverPanel({ raffles, now }: { raffles: Raffle[]; now: number }) {
+  const top = raffles
+    .filter(
+      (r) => r.state === "active" && r.endTime > now && r.ticketsSold < r.maxTickets,
+    )
+    .slice(0, 4);
   return (
     <div className="panel">
       <div className="panel-head">

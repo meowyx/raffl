@@ -9,17 +9,19 @@ import { useRaffles } from "@/lib/hooks";
 import {
   colorForPubkey,
   countdownFromUnix,
+  displayStatus,
   formatSol,
   pct,
   shortAddress,
   type Raffle,
 } from "@/lib/types";
 
-type FilterKey = "active" | "closing-soon" | "settled" | "all";
+type FilterKey = "active" | "closing-soon" | "expired" | "settled" | "all";
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "active", label: "Active" },
   { key: "closing-soon", label: "Closing soon" },
+  { key: "expired", label: "Expired" },
   { key: "settled", label: "Settled" },
   { key: "all", label: "All" },
 ];
@@ -38,12 +40,21 @@ export function ExploreContent() {
 
   const filtered = useMemo(() => {
     if (filter === "all") return raffles;
-    if (filter === "active") return raffles.filter((r) => r.state === "active");
+    if (filter === "active")
+      return raffles.filter(
+        (r) => r.state === "active" && r.endTime > now && r.ticketsSold < r.maxTickets,
+      );
     if (filter === "settled")
       return raffles.filter((r) => r.state === "settled" || r.state === "claimed");
     if (filter === "closing-soon")
       return raffles.filter(
         (r) => r.state === "active" && r.endTime - now > 0 && r.endTime - now < ONE_HOUR,
+      );
+    if (filter === "expired")
+      return raffles.filter(
+        (r) =>
+          (r.state === "active" && (r.endTime <= now || r.ticketsSold >= r.maxTickets)) ||
+          r.state === "drawing",
       );
     return raffles;
   }, [raffles, filter, now]);
@@ -95,9 +106,11 @@ export function ExploreContent() {
                 ? "No active raffles right now. Check back soon, or "
                 : filter === "closing-soon"
                   ? "Nothing closing in the next hour. Try "
-                  : filter === "settled"
-                    ? "No settled raffles yet. Try "
-                    : "No raffles yet. "}
+                  : filter === "expired"
+                    ? "No expired raffles awaiting resolution. Try "
+                    : filter === "settled"
+                      ? "No settled raffles yet. Try "
+                      : "No raffles yet. "}
               {filter !== "all" && (
                 <button
                   type="button"
@@ -124,6 +137,7 @@ export function ExploreContent() {
 
 function ExploreCard({ raffle: r, now }: { raffle: Raffle; now: number }) {
   const progress = pct(r.ticketsSold, r.maxTickets);
+  const status = displayStatus(r, now);
   return (
     <Link href={`/raffle/${r.pubkey}`} className="explore-card">
       <div
@@ -133,8 +147,8 @@ function ExploreCard({ raffle: r, now }: { raffle: Raffle; now: number }) {
       />
       <div className="explore-card-body">
         <div className="explore-card-state">
-          <StatusBadge state={r.state} />
-          {r.state === "active" && (
+          <StatusBadge state={status} />
+          {status === "active" && (
             <span className="explore-card-countdown">
               {countdownFromUnix(r.endTime, now)}
             </span>

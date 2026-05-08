@@ -12,6 +12,7 @@ import { useActiveWallet } from "@/lib/wallet";
 import {
   colorForPubkey,
   countdownFromUnix,
+  displayStatus,
   formatSol,
   groupMyTicketsByRaffle,
   relativeAgo,
@@ -234,7 +235,7 @@ export function AccountContent() {
                       {relativeAgo(e.at, now)} ago
                     </div>
                   </div>
-                  <StatusBadge state={e.raffle.state} />
+                  <StatusBadge state={displayStatus(e.raffle, now)} />
                 </div>
               ))}
             </div>
@@ -248,29 +249,36 @@ export function AccountContent() {
               <span className="meta">{myGroups.length}</span>
             </div>
             <div className="raffle-list">
-              {myGroups.map((g) => (
-                <div className="raffle-row" key={g.raffle.pubkey}>
-                  <div
-                    className="raffle-thumb"
-                    style={{ background: colorForPubkey(g.raffle.pubkey) }}
-                    aria-hidden
-                  />
-                  <div className="raffle-top">
-                    <div className="raffle-name">
-                      <div className="title">{g.raffle.prizeDescription}</div>
-                      <div className="sub">
-                        {g.count} {g.count === 1 ? "ticket" : "tickets"} ·{" "}
-                        {g.raffle.state === "active"
-                          ? `ends in ${countdownFromUnix(g.raffle.endTime, now)}`
-                          : g.raffle.state}
+              {myGroups.map((g) => {
+                const status = displayStatus(g.raffle, now);
+                return (
+                  <div className="raffle-row" key={g.raffle.pubkey}>
+                    <div
+                      className="raffle-thumb"
+                      style={{ background: colorForPubkey(g.raffle.pubkey) }}
+                      aria-hidden
+                    />
+                    <div className="raffle-top">
+                      <div className="raffle-name">
+                        <div className="title">{g.raffle.prizeDescription}</div>
+                        <div className="sub">
+                          {g.count} {g.count === 1 ? "ticket" : "tickets"} ·{" "}
+                          {status === "active"
+                            ? `ends in ${countdownFromUnix(g.raffle.endTime, now)}`
+                            : status === "expired"
+                              ? g.raffle.ticketsSold < g.raffle.minTickets
+                                ? "expired · refund available"
+                                : "expired · awaiting draw"
+                              : status}
+                        </div>
+                      </div>
+                      <div className="raffle-actions">
+                        <StatusBadge state={status} />
                       </div>
                     </div>
-                    <div className="raffle-actions">
-                      <StatusBadge state={g.raffle.state} />
-                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}

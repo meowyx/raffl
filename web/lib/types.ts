@@ -103,6 +103,18 @@ export function selectMyCreated(all: Raffle[], me: string | null): Raffle[] {
   return all.filter((r) => r.creator === me);
 }
 
+export type RaffleDisplayStatus = RaffleState | "expired";
+
+// On-chain `state` stays "active" past end_time until someone calls
+// cancel_raffle / request_draw. UI needs a derived label so an under-subscribed
+// or sold-out-but-undrawn raffle doesn't look buyable.
+export function displayStatus(r: Raffle, nowUnix: number): RaffleDisplayStatus {
+  if (r.state === "active" && (r.endTime <= nowUnix || r.ticketsSold >= r.maxTickets)) {
+    return "expired";
+  }
+  return r.state;
+}
+
 export function selectActive(all: Raffle[]): Raffle[] {
   return all.filter((r) => r.state === "active");
 }

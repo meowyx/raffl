@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 export type RaffleStatus =
   | "active"
   | "drawing"
+  | "expired"
   | "settled"
   | "claimed"
   | "cancelled"
@@ -21,6 +22,7 @@ const palette: Record<RaffleStatus, { bg: string; fg: string }> = {
     bg: "color-mix(in oklab, var(--accent-violet) 14%, transparent)",
     fg: "var(--accent-violet)",
   },
+  expired: { bg: "var(--paper-2)", fg: "var(--muted)" },
   settled: { bg: "var(--paper-2)", fg: "var(--muted)" },
   claimed: { bg: "var(--paper-2)", fg: "var(--muted)" },
   cancelled: {

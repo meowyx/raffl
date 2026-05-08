@@ -35,6 +35,7 @@ import {
 import {
   colorForPubkey,
   countdownFromUnix,
+  displayStatus,
   formatSol,
   pct,
   relativeAgo,
@@ -269,7 +270,7 @@ export function RaffleDetail({ rafflePubkey }: { rafflePubkey: string }) {
           />
           <div className="raffle-hero-meta">
             <div className="raffle-hero-state">
-              <StatusBadge state={raffle.state} />
+              <StatusBadge state={displayStatus(raffle, now)} />
               {isActive && !ended && (
                 <span className="raffle-hero-countdown">
                   ends in {countdownFromUnix(raffle.endTime, now)}
