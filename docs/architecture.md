@@ -108,7 +108,7 @@ On a cancelled raffle, the vault pays buyers (`refund_ticket`, one per ticket) a
 |---|---|
 | Smart contract | Anchor 1.0.1 (Rust) |
 | Randomness | Switchboard On-Demand 0.12 with `solana-v3` feature |
-| Tests | LiteSVM 0.10, in-process, 36 tests |
+| Tests | LiteSVM 0.10, in-process, 35 tests |
 | RPC | Helius (devnet for v0.1) |
 | Wallet / auth | Privy (embedded MPC + external wallet adapter) |
 | Frontend | Next.js 16 App Router, TypeScript |

@@ -18,6 +18,8 @@ import IdlPage, { toc as idlToc } from "@/content/docs/idl.mdx";
 import VrfPage, { toc as vrfToc } from "@/content/docs/vrf.mdx";
 import VerifyDrawPage, { toc as verifyDrawToc } from "@/content/docs/verify-draw.mdx";
 import FeesPage, { toc as feesToc } from "@/content/docs/fees.mdx";
+import GlossaryPage, { toc as glossaryToc } from "@/content/docs/glossary.mdx";
+import ErrorsPage, { toc as errorsToc } from "@/content/docs/errors.mdx";
 import SdkPage, { toc as sdkToc } from "@/content/docs/sdk.mdx";
 import RestPage, { toc as restToc } from "@/content/docs/rest.mdx";
 import FaqPage, { toc as faqToc } from "@/content/docs/faq.mdx";
@@ -46,6 +48,8 @@ export const PAGES: Record<string, Entry> = {
   vrf: { Page: VrfPage, toc: vrfToc, file: "vrf.mdx" },
   "verify-draw": { Page: VerifyDrawPage, toc: verifyDrawToc, file: "verify-draw.mdx" },
   fees: { Page: FeesPage, toc: feesToc, file: "fees.mdx" },
+  glossary: { Page: GlossaryPage, toc: glossaryToc, file: "glossary.mdx" },
+  errors: { Page: ErrorsPage, toc: errorsToc, file: "errors.mdx" },
   sdk: { Page: SdkPage, toc: sdkToc, file: "sdk.mdx" },
   rest: { Page: RestPage, toc: restToc, file: "rest.mdx" },
   faq: { Page: FaqPage, toc: faqToc, file: "faq.mdx" },

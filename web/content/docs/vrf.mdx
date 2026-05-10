@@ -81,4 +81,4 @@ There is a textbook **modulo bias** when `tickets_sold` does not divide evenly i
 
 Slot-hash randomness (using `recent_blockhashes` or a slot's blockhash) is gameable by validators. A validator producing block N at slot S can choose to skip producing if the resulting randomness is unfavorable, accepting the loss of block reward in exchange for steering an outcome. Switchboard's commit-reveal pattern shifts that trust to a third-party oracle network with explicit slashing for misbehavior, which is meaningfully harder to attack for raffles where the prize exceeds a validator's expected block reward.
 
-For v0.1 (devnet) we hardcode the Switchboard On-Demand devnet PID. Mainnet rotates via a code-level swap and redeploy.
+For v0.1 (devnet) we hardcode the Switchboard On-Demand devnet PID `Aio4gaXjXzJNVLtzwtNVmSqGKpANtXhybbkhtAC94ji2`. Mainnet rotates to `SBondMDrcV3K4kxZR1HNVT7osZxAHVHgYXL5Ze1oMUv` via a code-level swap and redeploy.

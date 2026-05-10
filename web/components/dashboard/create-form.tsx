@@ -17,7 +17,7 @@ import { useSendTransaction } from "@/lib/tx";
 import { useActiveWallet } from "@/lib/wallet";
 
 const MIN_TICKETS_FLOOR = 2;
-const MAX_DESCRIPTION_LENGTH = 200;
+const MAX_DESCRIPTION_LENGTH = 128;
 const HOUR_SECONDS = 3600;
 const DAY_SECONDS = 86_400;
 

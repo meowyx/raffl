@@ -1,0 +1,67 @@
+export const toc = [
+  { id: "solana-and-cryptography", text: "Solana and cryptography", level: 2 },
+  { id: "stack-and-tooling", text: "Stack and tooling", level: 2 },
+  { id: "raffl-pdas", text: "raffl PDAs", level: 2 },
+  { id: "switchboard-slots", text: "Switchboard slots", level: 2 },
+  { id: "references", text: "References", level: 2 },
+];
+
+# Glossary
+
+A short lookup for the terms used across these docs. Each entry is one definition, plus an "in raffl" note where the term has a project-specific instance.
+
+## Solana and cryptography
+
+**PDA (Program-Derived Address).** A deterministic Solana account address with no private key, owned by a program. raffl uses four PDA shapes; see [PDAs and accounts](/docs/pdas).
+
+**CPI (Cross-Program Invocation).** One Solana program calling an instruction on another within the same transaction. *In raffl:* every vault transfer is a `system_program` CPI.
+
+**VRF (Verifiable Random Function).** Randomness produced with a proof anyone can check. *In raffl:* entropy from Switchboard On-Demand, bound to the raffle at `request_draw`.
+
+**bps (basis points).** 1/100th of a percent (500 bps = 5%). *In raffl:* `fee_bps = 500`; `MAX_FEE_BPS = 2000` (`constants.rs:12`).
+
+**Modulo bias.** When you reduce a uniformly random integer with `%`, values distribute unevenly unless the modulus divides the input range exactly. *In raffl:* `winner_index = entropy % tickets_sold`, worst-case bias ~5e-15 at the 100k-ticket cap. The protocol accepts this rather than rejection-sample.
+
+**SGX (Intel Software Guard Extensions).** CPU feature that runs code inside an attested hardware enclave so the host OS can't read or tamper with it. *In raffl:* Switchboard oracles sign randomness inside SGX; that's what makes the value verifiable at reveal.
+
+## Stack and tooling
+
+**Anchor.** Rust framework for Solana programs. raffl runs on Anchor 1.0.1.
+
+**Switchboard On-Demand.** Solana oracle that delivers on-chain verifiable randomness via a commit-reveal flow, one slot apart. *In raffl:* the program ID is hardcoded per cluster (see [References](#references)) and validated on every randomness account.
+
+**IDL (Interface Description Language).** JSON describing a program's instructions, accounts, and types. Anchor publishes raffl's IDL on-chain at deploy. See [IDL](/docs/idl).
+
+**Codama.** TypeScript codegen that turns an Anchor IDL into a typed kit-style client. *In raffl:* the generated client lives in `web/lib/program-client/`.
+
+**kit.** `@solana/kit`, the modern TypeScript SDK for Solana. Replaces `@solana/web3.js` v1 in most of the frontend. raffl's Codama output is kit-shaped.
+
+**LiteSVM.** In-process Rust test harness that runs Solana programs without spinning up a validator. raffl's program tests use it for fast, deterministic runs.
+
+## raffl PDAs
+
+Seeds and owners are the canonical values from `program/programs/raffl/src/state.rs` and `constants.rs`.
+
+| PDA | Seeds | Owner | Holds |
+|---|---|---|---|
+| `RafflePlatform` | `["platform"]` | raffl | Singleton: protocol fee bps, treasury, authority. |
+| `Raffle` | `["raffle", creator, nonce]` | raffl | One per raffle: price, ticket counts, state, winner, bound `vrf_account`. |
+| `Vault` | `["vault", raffle]` | system | One per raffle: a SOL balance the program signs for. No data layout. |
+| `Ticket` | `["ticket", raffle, ticket_number]` | raffl | One per ticket: buyer, index, purchase time. |
+
+For the full field lists see [PDAs and accounts](/docs/pdas).
+
+## Switchboard slots
+
+Both refer to Solana slots (one slot is roughly 400ms).
+
+**Commit slot.** The slot at which Switchboard's `commitIx` ran. Stored as `commit_slot` on the raffle and `seed_slot` on the randomness account. raffl requires `seed_slot == clock.slot - 1` (one-slot freshness).
+
+**Reveal slot.** The slot at which Switchboard's `revealIx` ran. The value is only readable in that slot, so `settle_raffle` and `revealIx` must ride in the same transaction. See [Switchboard VRF](/docs/vrf).
+
+## References
+
+| Item | Value | Source |
+|---|---|---|
+| Switchboard On-Demand devnet PID | `Aio4gaXjXzJNVLtzwtNVmSqGKpANtXhybbkhtAC94ji2` | `constants.rs:31` |
+| Switchboard On-Demand mainnet PID | `SBondMDrcV3K4kxZR1HNVT7osZxAHVHgYXL5Ze1oMUv` | `constants.rs:29` (comment); swap-in target for mainnet |

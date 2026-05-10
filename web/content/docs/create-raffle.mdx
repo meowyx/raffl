@@ -15,7 +15,7 @@ Click **+ Create raffle** on the dashboard, or go directly to [/dashboard/create
 
 ## Fields
 
-**Prize description** (≤200 characters). Free-text. This is what shows up on the raffle card and detail page. Keep it short and concrete: "0.5 SOL", "1 of 1 NFT (devnet placeholder)", "Discord role", etc.
+**Prize description** (≤128 bytes). Free-text. Multi-byte characters such as emoji count as more than one byte. This is what shows up on the raffle card and detail page. Keep it short and concrete: "0.5 SOL", "1 of 1 NFT (devnet placeholder)", "Discord role", etc.
 
 **Prize amount** (SOL). The lamports that get escrowed into the vault. The winner receives exactly this amount when they claim, before fees. Must be greater than zero.
 
