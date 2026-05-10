@@ -3,9 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DOCS_NAV } from "@/lib/docs/nav";
+import { PAGES } from "@/lib/docs/content";
 
 const FLAT = DOCS_NAV.flatMap((s) =>
-  s.items.map((it) => ({ ...it, section: s.label })),
+  s.items.map((it) => ({
+    ...it,
+    section: s.label,
+    description: PAGES[it.slug]?.meta.description ?? "",
+  })),
 );
 
 export function DocsSearchTrigger() {
@@ -58,11 +63,14 @@ function SearchModal({ onClose }: { onClose: () => void }) {
   }, []);
 
   const results = q.trim()
-    ? FLAT.filter(
-        (it) =>
-          it.name.toLowerCase().includes(q.toLowerCase()) ||
-          it.section.toLowerCase().includes(q.toLowerCase()),
-      )
+    ? FLAT.filter((it) => {
+        const query = q.toLowerCase();
+        return (
+          it.name.toLowerCase().includes(query) ||
+          it.section.toLowerCase().includes(query) ||
+          it.description.toLowerCase().includes(query)
+        );
+      })
     : FLAT.slice(0, 6);
 
   const jump = (slug: string) => {

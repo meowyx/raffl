@@ -1,5 +1,11 @@
 export const toc = [];
 
+export const meta = {
+  title: "REST API",
+  description: "raffl does not run a REST API. What to use instead: RPC reads, WebSocket subscriptions, and the Codama-generated client.",
+  lastUpdated: "2026-05-10",
+};
+
 # REST API
 
 raffl does not run a REST API. The website reads on-chain accounts directly via Solana RPC, with the API key proxied through a Next.js route handler so it never reaches the browser.
