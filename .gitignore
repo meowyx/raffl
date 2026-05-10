@@ -1,12 +1,3 @@
-# Personal planning + spec docs (private, not for public repo)
-plan.md
-spec.md
-program/security-checklist.md
-
-# AI agent instruction files (local tooling, not for public repo)
-AGENTS.md
-CLAUDE.md
-
 # Working design assets (sketches, source files, exports)
 design/
 
