@@ -3,6 +3,12 @@ export const toc = [
   { id: "fetching-from-chain", text: "Fetching from chain", level: 2 },
 ];
 
+export const meta = {
+  title: "IDL",
+  description: "Where to find raffl's IDL on chain, in the repo, and as a typed Codama client.",
+  lastUpdated: "2026-05-10",
+};
+
 # IDL
 
 The raffl program ships its IDL on-chain. Anchor publishes it during the same upload as the bytecode.
@@ -27,4 +33,4 @@ anchor idl fetch Finb5eCnqTNm33ssqS2ofEnuoHzCmXaWfuXEn4HcaGRA \
 
 Or with the Solana Explorer: [view the program](https://explorer.solana.com/address/Finb5eCnqTNm33ssqS2ofEnuoHzCmXaWfuXEn4HcaGRA?cluster=devnet) and click the **Anchor Program IDL** tab.
 
-The IDL describes nine instructions, four account layouts (`RafflePlatform`, `Raffle`, `Ticket`, plus the Switchboard `RandomnessAccountData` it reads), and the program's error enum. See [Instructions](/docs/instructions) for a per-call summary.
+The IDL describes nine instructions, three account layouts (`RafflePlatform`, `Raffle`, `Ticket`), and the program's error enum. Switchboard's `RandomnessAccountData` is read via `UncheckedAccount` and is not part of raffl's IDL. See [Instructions](/docs/instructions) for a per-call summary.

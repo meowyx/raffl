@@ -74,7 +74,7 @@ Architecture and v0.1 deep-dives in [docs/architecture.md](./docs/architecture.m
 <p align="center">
   <a href="https://www.anchor-lang.com/"><img src="https://img.shields.io/badge/Anchor-1.0.1-512BD4?style=flat" alt="Anchor"/></a>
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-1.89-000000?style=flat&logo=rust&logoColor=white" alt="Rust"/></a>
-  <a href="https://github.com/litesvm/litesvm"><img src="https://img.shields.io/badge/tests-36%20passing-success?style=flat" alt="Tests"/></a>
+  <a href="https://github.com/litesvm/litesvm"><img src="https://img.shields.io/badge/tests-35%20passing-success?style=flat" alt="Tests"/></a>
   <a href="https://docs.switchboard.xyz/product-documentation/randomness"><img src="https://img.shields.io/badge/VRF-Switchboard-00D4AA?style=flat" alt="Switchboard VRF"/></a>
   <a href="https://www.helius.dev/"><img src="https://img.shields.io/badge/RPC-Helius-FF4D00?style=flat" alt="Helius"/></a>
   <a href="https://www.privy.io/"><img src="https://img.shields.io/badge/Auth-Privy-7B61FF?style=flat" alt="Privy"/></a>

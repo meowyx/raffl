@@ -4,6 +4,12 @@ export const toc = [
   { id: "gas-and-rent", text: "Gas and rent", level: 2 },
 ];
 
+export const meta = {
+  title: "Fees and limits",
+  description: "A short reference for the numbers that govern raffl: protocol fee, ticket and duration limits, gas, rent.",
+  lastUpdated: "2026-05-10",
+};
+
 # Fees and limits
 
 A short reference for the numbers that govern raffl.
@@ -30,7 +36,7 @@ The fee is calculated against ticket revenue, never against the prize. If a crea
 | Max raffle duration | 30 days | enforced in `create_raffle` |
 | Min prize | 0.01 SOL | `MIN_PRIZE_AMOUNT_LAMPORTS = 10_000_000` |
 | Min ticket price | > 0 | enforced in `create_raffle` |
-| Prize description | ≤ 200 chars | enforced in `create_raffle` |
+| Prize description | ≤ 128 bytes | enforced in `create_raffle` |
 | Stale-draw timeout | 1 hour past end_time | `STALE_DRAW_TIMEOUT_SECS = 3_600` |
 | Tickets per wallet | unbounded | v0.1 limitation |
 

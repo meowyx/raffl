@@ -15,11 +15,11 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const item = getDocsItem(slug);
-  if (!item) return { title: "raffl docs" };
+  const entry = PAGES[slug];
+  if (!entry) return { title: "raffl docs" };
   return {
-    title: `${item.name} - raffl docs`,
-    description: `${item.name} documentation for raffl, an on-chain raffle platform on Solana.`,
+    title: `${entry.meta.title} - raffl docs`,
+    description: entry.meta.description,
   };
 }
 

@@ -1,0 +1,109 @@
+export const toc = [
+  { id: "platform-initialization", text: "Platform initialization", level: 2 },
+  { id: "raffle-creation", text: "Raffle creation", level: 2 },
+  { id: "state-guards", text: "State guards", level: 2 },
+  { id: "ticket-purchase", text: "Ticket purchase", level: 2 },
+  { id: "draw-initiation", text: "Draw initiation", level: 2 },
+  { id: "switchboard-randomness", text: "Switchboard randomness", level: 2 },
+  { id: "settlement-and-claim", text: "Settlement and claim", level: 2 },
+  { id: "cancellation", text: "Cancellation", level: 2 },
+  { id: "internal", text: "Internal", level: 2 },
+];
+
+export const meta = {
+  title: "Errors",
+  description: "Reference for all 33 program errors: code, trigger, common cause, and fix.",
+  lastUpdated: "2026-05-10",
+};
+
+# Errors
+
+33 error variants defined in `program/programs/raffl/src/error.rs`. Anchor assigns codes starting at 6000 in declaration order. This page maps each one to its trigger, common cause, and fix.
+
+## Platform initialization
+
+| Error | Code | Triggered when | Common cause | Fix |
+|---|---|---|---|---|
+| `FeeBpsTooHigh` | 6000 | `initialize_platform` called with `fee_bps > 2000` | Cap is 20% (2000 bps); production is 500 (5%) | Pass `fee_bps` in `[0, 2000]`. |
+| `InvalidTreasury` | 6001 | `initialize_platform` called with `treasury == Pubkey::default()` | Forgetting to set the treasury argument | Pass a non-zero treasury pubkey. |
+
+## Raffle creation
+
+Validation runs in `create_raffle.rs:65-95`.
+
+| Error | Code | Triggered when | Common cause | Fix |
+|---|---|---|---|---|
+| `TicketPriceTooLow` | 6002 | `ticket_price < 1_000` lamports | Zero or under 1,000 lamports | Set `ticket_price >= 1_000`. |
+| `MaxTicketsOutOfRange` | 6003 | `max_tickets` outside `[2, 100_000]` | One-ticket raffle, or exceeding the protocol cap | Pick `max_tickets` in `[2, 100_000]`. |
+| `MinTicketsOutOfRange` | 6004 | `min_tickets < 2` or `min_tickets > max_tickets` | Setting `min_tickets = 0` or higher than `max_tickets` | Set `min_tickets >= 2` and `<= max_tickets`. |
+| `DurationOutOfRange` | 6005 | `end_time - now` outside `[3600, 2_592_000]` seconds | End time under 1 hour or over 30 days from now | Pick an end time 1 hour to 30 days out. |
+| `PrizeAmountTooLow` | 6006 | `prize_amount < 10_000_000` lamports (0.01 SOL). Also raised in `reclaim_prize.rs:45` when `raffle.prize_amount` is already zero | Tiny prize, or double-calling `reclaim_prize` | `prize_amount >= 0.01 SOL` at create. On reclaim, this is the intended double-call defense. |
+| `PrizeDescriptionEmpty` | 6007 | Empty `prize_description` string | Submitting with the description blank | Set a non-empty description. |
+| `PrizeDescriptionTooLong` | 6008 | `prize_description.len() > 128` bytes | Long description, or short description with multi-byte characters | Shorten to ≤ 128 bytes (each emoji is 4 bytes). |
+| `UnsupportedPrizeType` | 6009 | `prize_type != Sol` | Choosing `Token`, `Nft`, or `Physical` | Use `PrizeType::Sol`. Other variants are reserved for v0.2. |
+
+## State guards
+
+Each state-changing instruction guards on the current state.
+
+| Error | Code | Triggered when | Common cause | Fix |
+|---|---|---|---|---|
+| `RaffleNotActive` | 6010 | `buy_ticket` called when `state != Active` | Past `end_time`, sold out, or already in Drawing/Settled/Cancelled | Check `raffle.state` first. If under-subscribed past `end_time`, anyone can `cancel_raffle`. |
+| `RaffleNotDrawing` | 6011 | `settle_raffle` called when `state != Drawing` | `request_draw` hasn't run, or settle already happened | Run `request_draw` first. If already Settled, the raffle is done. |
+| `RaffleNotSettled` | 6012 | `claim_prize` called when `state != Settled` | Trying to claim before settle completes | Wait for `settle_raffle` to land. |
+| `RaffleNotCancelled` | 6030 | `refund_ticket` or `reclaim_prize` called when `state != Cancelled` | Trying to refund a settled or active raffle | Cancel first via `cancel_raffle`. See [Manage and cancel](/docs/manage-raffle). |
+
+## Ticket purchase
+
+| Error | Code | Triggered when | Common cause | Fix |
+|---|---|---|---|---|
+| `RaffleExpired` | 6013 | `now >= raffle.end_time` | Buying after the deadline | Find another open raffle. |
+| `RaffleSoldOut` | 6014 | `tickets_sold == max_tickets` | All tickets are gone | Raffle is ready to settle; wait for the creator. |
+
+## Draw initiation
+
+`request_draw` is creator-only and runs strict checks on the Switchboard randomness account.
+
+| Error | Code | Triggered when | Common cause | Fix |
+|---|---|---|---|---|
+| `RaffleNotReadyToDraw` | 6015 | Not sold out and `now < end_time` | Drawing before the deadline on a non-sold-out raffle | Wait for sold out or `end_time`. |
+| `NotEnoughTicketsSold` | 6016 | `tickets_sold < min_tickets` | The minimum threshold was never met | Cancel via `cancel_raffle`, then refund and reclaim. |
+| `NotRaffleCreator` | 6029 | Signer is not `raffle.creator` | A buyer or third party trying to start the draw | Only the creator can call `request_draw`. |
+
+## Switchboard randomness
+
+Defensive checks on the bound `RandomnessAccountData` (`request_draw.rs:71-99`, `settle_raffle.rs:58-83`).
+
+| Error | Code | Triggered when | Common cause | Fix |
+|---|---|---|---|---|
+| `InvalidRandomnessAccountOwner` | 6017 | The randomness account is not owned by the Switchboard program | Spoofed account, or wrong cluster (devnet PID on mainnet) | Use a Switchboard On-Demand randomness account on the correct cluster. See the [glossary](/docs/glossary#references). |
+| `InvalidRandomnessAccountData` | 6018 | `RandomnessAccountData::parse` fails | Account exists but its layout has changed | Recreate the randomness account with the current Switchboard SDK. |
+| `RandomnessNotFresh` | 6019 | `seed_slot != clock.slot - 1` | Commit and `request_draw` more than one slot apart | Bundle `commitIx` with `request_draw` in the same transaction. |
+| `RandomnessAlreadyRevealed` | 6020 | The randomness has already been revealed at `request_draw` time | Account already used by another raffle | Create a fresh randomness account. |
+| `RandomnessNotResolved` | 6021 | `get_value(clock.slot)` fails at settle | Reveal didn't happen in the same transaction as settle | Bundle `revealIx` with `settle_raffle` in the same transaction. |
+| `RandomnessAccountMismatch` | 6022 | Passed account != `raffle.vrf_account` | Substituting a different randomness account at settle | Pass the same account bound at `request_draw`. |
+| `CommitSlotMismatch` | 6023 | `seed_slot != raffle.commit_slot` | A different commit slipped in | Same randomness account, same commit slot. |
+
+## Settlement and claim
+
+| Error | Code | Triggered when | Common cause | Fix |
+|---|---|---|---|---|
+| `WinningTicketMismatch` | 6024 | `settle_raffle.rs:98-101`: passed Ticket's `ticket_number` does not equal the derived winner index. Also reused in `refund_ticket.rs:34` as the `ticket.raffle == raffle.key()` cross-account check | Substituting a non-winning Ticket at settle, or wrong raffle on refund | Pass the Ticket PDA at the derived winner index. For refunds, pass a Ticket from the right raffle. |
+| `NotTheWinner` | 6025 | Signer's pubkey does not match `raffle.winner` | Wrong wallet trying to claim | Connect the winning wallet. |
+| `InvalidCreatorAccount` | 6026 | Passed creator account does not match `raffle.creator` | Wrong creator pubkey passed | Read `raffle.creator` and pass that. |
+| `InvalidTreasuryAccount` | 6027 | Passed treasury does not match `platform.treasury` | Stale or wrong treasury account | Read `platform.treasury` and pass that. |
+| `InvalidBuyerAccount` | 6032 | `ticket.buyer` does not match the signer | Trying to refund someone else's ticket | Only the original buyer can refund their ticket. |
+
+## Cancellation
+
+| Error | Code | Triggered when | Common cause | Fix |
+|---|---|---|---|---|
+| `RaffleNotCancellable` | 6031 | Neither cancel path is satisfied | Trying to cancel an Active raffle that hasn't expired, or a sold-out one | Either `(Active && now >= end_time && tickets_sold < min_tickets)` or `(Drawing && now >= end_time + 3600)`. See [Manage and cancel](/docs/manage-raffle). |
+
+## Internal
+
+| Error | Code | Triggered when | Common cause | Fix |
+|---|---|---|---|---|
+| `ArithmeticOverflow` | 6028 | A `checked_*` op returned `None`, or a `u128 → u64` cast overflowed | Should not occur under v0.1 caps | File an issue. Should be unreachable under v0.1 caps. |
+
+For the canonical catalog, read `program/programs/raffl/src/error.rs`. For the validation chain that produces most of these, see [Instructions](/docs/instructions).

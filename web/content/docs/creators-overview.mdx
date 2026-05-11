@@ -5,6 +5,12 @@ export const toc = [
   { id: "what-you-do-not", text: "What you do not", level: 2 },
 ];
 
+export const meta = {
+  title: "For creators",
+  description: "Set the prize, the price, the cap, and the deadline. The chain handles the rest.",
+  lastUpdated: "2026-05-10",
+};
+
 # For creators
 
 Creators are the people who set up raffles. You pick the prize, the price, the cap, and the deadline. The chain handles everything after that.
@@ -24,7 +30,7 @@ Creators are the people who set up raffles. You pick the prize, the price, the c
 
 ## What you control
 
-- **Prize amount and description.** Up to 200 characters of free-text description.
+- **Prize amount and description.** Up to 128 bytes of free-text description (emoji and other multi-byte characters count as more than one byte).
 - **Ticket price.** Any non-zero amount of SOL.
 - **Max and min tickets.** Min must be at least 2. Max must be at least min and no greater than 100,000.
 - **End time.** Between 1 hour and 30 days from now.

@@ -55,6 +55,8 @@ export const DOCS_NAV: DocsNavSection[] = [
     label: "Reference",
     items: [
       { slug: "fees", name: "Fees & limits" },
+      { slug: "glossary", name: "Glossary" },
+      { slug: "errors", name: "Errors" },
       { slug: "sdk", name: "TS SDK", badge: "v0.4" },
       { slug: "rest", name: "REST API" },
       { slug: "faq", name: "FAQ" },

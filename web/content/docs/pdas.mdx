@@ -6,6 +6,12 @@ export const toc = [
   { id: "ticket", text: "Ticket", level: 2 },
 ];
 
+export const meta = {
+  title: "PDAs and accounts",
+  description: "Every persistent piece of state in raffl lives in one of four PDAs.",
+  lastUpdated: "2026-05-10",
+};
+
 # PDAs and accounts
 
 Every persistent piece of state in raffl lives in one of four PDAs.
@@ -41,7 +47,7 @@ Holds everything about one raffle.
 ```
 creator:           Pubkey        // who created this; signs request_draw + reclaim_prize
 nonce:             u64           // creator-supplied; part of the seed
-prize_description: String        // free-text, ≤200 chars
+prize_description: String        // free-text, ≤128 bytes
 prize_type:        PrizeType     // Sol only in v0.1; Token/Nft/Physical reserved
 prize_amount:      u64           // lamports escrowed at create time
 ticket_price:      u64           // lamports per ticket
